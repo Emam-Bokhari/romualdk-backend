@@ -116,7 +116,11 @@ const createHostRequestToDB = async (userId: string, payload: IHostRequestInput)
 
     if (user.hostStatus === HOST_STATUS.APPROVED) throw new ApiError(400, "User is already a host");
 
-    user.nidFrontPic = payload.nidBackPic;
+    if (!payload.nidFrontPic || !payload.nidBackPic) {
+        throw new ApiError(400, "Nid front picture and nid back picture is required")
+    }
+
+    user.nidFrontPic = payload.nidFrontPic;
     user.nidBackPic = payload.nidBackPic;
     if (payload.drivingLicenseFrontPic) user.drivingLicenseFrontPic = payload.drivingLicenseFrontPic;
     if (payload.drivingLicenseBackPic) user.drivingLicenseBackPic = payload.drivingLicenseBackPic;
@@ -170,7 +174,7 @@ const deleteHostRequestByIdFromDB = async (id: string) => {
 
     if (!user) throw new ApiError(404, "No user is found by this ID")
 
-    if (user?.hostStatus === HOST_STATUS.NONE) throw new ApiError(404, "No host request found in this ID");
+    if (user?.hostStatus === HOST_STATUS.NONE) throw new ApiError(404, "No host request found by this ID");
 
     user.hostStatus = HOST_STATUS.NONE;
     user.nidFrontPic = ""
