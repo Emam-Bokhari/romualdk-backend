@@ -2,4 +2,10 @@ export enum USER_ROLES {
     ADMIN = 'ADMIN',
     SUPER_ADMIN = 'SUPER_ADMIN',
     USER = 'USER',
+    HOST = 'HOST',
+}
+
+export enum GENDER {
+    MALE = "MALE",
+    FEMALE = "FEMALE"
 }

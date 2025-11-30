@@ -1,32 +1,25 @@
 import { Model, Types } from 'mongoose';
-import { USER_ROLES } from '../../../enums/user';
+import { GENDER, USER_ROLES } from '../../../enums/user';
 
-interface IStripeAccountInfo {
-    status: string;
-    stripeAccountId: string;
-    externalAccountId: string;
-    currency: string;
-}
-
-interface IAuthenticationProps {
-    isResetPassword: boolean;
-    oneTimeCode: number;
-    expireAt: Date;
-}
 
 export type IUser = {
-    name: string;
-    appId: string;
+    firstName: string;
+    lastName: string;
     role: USER_ROLES;
-    contact: string;
-    email: string;
+    countryCode: string;
+    phone: string;
+    email?: string;
+    profileImage?: string;
     password: string;
-    location: string;
-    profile: string;
+    dateOfBirth: string;
+    gender?: GENDER;
     verified: boolean;
-    authentication?: IAuthenticationProps;
-    accountInformation?: IStripeAccountInfo;
-}
+    authentication?: {
+        isResetPassword: boolean;
+        oneTimeCode: number;
+        expireAt: Date;
+    };
+};
 
 export type UserModal = {
     isExistUserById(id: string): any;

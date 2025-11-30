@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { USER_ROLES } from "../../../enums/user";
+import { GENDER, USER_ROLES } from "../../../enums/user";
 import { IUser, UserModal } from "./user.interface";
 import bcrypt from "bcrypt";
 import ApiError from "../../../errors/ApiErrors";
@@ -8,17 +8,26 @@ import config from "../../../config";
 
 const userSchema = new Schema<IUser, UserModal>(
     {
-        name: {
+        firstName: {
             type: String,
-            required: false,
+            required: true,
         },
-        appId: {
+        lastName: {
             type: String,
-            required: false,
+            required: true,
         },
         role: {
             type: String,
             enum: Object.values(USER_ROLES),
+            required: true,
+        },
+        phone: {
+            type: String,
+            required: true,
+            unique: true,
+        },
+        countryCode: {
+            type: String,
             required: true,
         },
         email: {
@@ -27,7 +36,7 @@ const userSchema = new Schema<IUser, UserModal>(
             unique: true,
             lowercase: true,
         },
-        contact: {
+        profileImage: {
             type: String,
             required: false,
         },
@@ -37,12 +46,13 @@ const userSchema = new Schema<IUser, UserModal>(
             select: 0,
             minlength: 8,
         },
-        location: {
+        dateOfBirth: {
             type: String,
-            required: false,
+            required: true,
         },
-        profile: {
+        gender: {
             type: String,
+            enum: Object.values(GENDER),
             required: false,
         },
         verified: {
@@ -64,23 +74,8 @@ const userSchema = new Schema<IUser, UserModal>(
                     default: null,
                 },
             },
-            select: 0
+            select: 0,
         },
-        accountInformation: {
-            status: {
-                type: Boolean,
-                default: false,
-            },
-            stripeAccountId: {
-                type: String,
-            },
-            externalAccountId: {
-                type: String,
-            },
-            currency: {
-                type: String,
-            }
-        }
     },
     {
         timestamps: true
@@ -113,13 +108,14 @@ userSchema.statics.isMatchPassword = async (password: string, hashPassword: stri
 //check user
 userSchema.pre('save', async function (next) {
     //check user
-    const isExist = await User.findOne({ email: this.email });
+    const isExist = await User.findOne({ phone: this.phone });
     if (isExist) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already exist!');
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Phone number already exist!');
     }
 
     //password hash
     this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_rounds));
     next();
 });
+
 export const User = model<IUser, UserModal>("User", userSchema)

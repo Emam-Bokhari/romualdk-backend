@@ -4,60 +4,77 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { AuthService } from './auth.service';
 
-const verifyEmail = catchAsync(async (req: Request, res: Response) => {
-    const { ...verifyData } = req.body;
-    const result = await AuthService.verifyEmailToDB(verifyData);
+
+// verify Phone OTP
+const verifyPhone = catchAsync(async (req: Request, res: Response) => {
+     const { ...verifyData } = req.body;
+
+    const result = await AuthService.verifyPhoneToDB(verifyData);
 
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
-        message: result.message,
-        data: result.data,
+        message: "Successfully verified your account",
+        data: result,
     });
 });
 
 
+// login User
 const loginUser = catchAsync(async (req: Request, res: Response) => {
-    const { ...loginData } = req.body;
-    const result = await AuthService.loginUserFromDB(loginData);
+    const { phone, password } = req.body;
+
+    const result = await AuthService.loginUserFromDB({ phone, password });
 
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
-        message: 'User login successfully',
+        message: 'User login successful',
         data: result
     });
 });
 
+
+// forget Password (Send OTP)
 const forgetPassword = catchAsync(async (req: Request, res: Response) => {
-    const email = req.body.email;
-    const result = await AuthService.forgetPasswordToDB(email);
+    const { phone, countryCode } = req.body; // ✅ Added countryCode
+
+    const result = await AuthService.forgetPasswordToDB(phone, countryCode);
 
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
-        message: 'Please check your email, we send a OTP!',
+        message: 'OTP sent to your phone!',
         data: result
     });
 });
 
-const resetPassword = catchAsync(async (req: Request, res: Response) => {
-    const token = req.headers.authorization;
-    const { ...resetData } = req.body;
-    const result = await AuthService.resetPasswordToDB(token!, resetData);
 
-    sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: 'Password reset successfully',
-        data: result
-    });
+// reset Password
+const resetPassword = catchAsync(async (req, res) => {
+  const token: any = req.headers.resettoken;
+  const { ...resetData } = req.body;
+  const result = await AuthService.resetPasswordToDB(token!, resetData);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: "Your password has been successfully reset.",
+    data: result,
+  });
 });
 
+
+// change Password
 const changePassword = catchAsync(async (req: Request, res: Response) => {
     const user = req.user;
-    const { ...passwordData } = req.body;
-    await AuthService.changePasswordToDB(user, passwordData);
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    await AuthService.changePasswordToDB(user as any, {
+        currentPassword,
+        newPassword,
+        confirmPassword
+    });
 
     sendResponse(res, {
         success: true,
@@ -67,61 +84,57 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 
+// new Access Token
 const newAccessToken = catchAsync(async (req: Request, res: Response) => {
     const { token } = req.body;
+
     const result = await AuthService.newAccessTokenToUser(token);
 
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
-        message: 'Generate Access Token successfully',
+        message: 'New access token generated successfully',
         data: result
     });
 });
 
-const resendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
-    const { email } = req.body;
-    const result = await AuthService.resendVerificationEmailToDB(email);
+
+// resend OTP (Phone)
+const resendPhoneOTP = catchAsync(async (req: Request, res: Response) => {
+    const { phone, countryCode } = req.body; // ✅ Added countryCode
+
+    const result = await AuthService.resendPhoneOTPToDB(phone, countryCode);
 
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
-        message: 'Generate OTP and send successfully',
+        message: 'OTP resent successfully',
         data: result
     });
 });
 
-const socialLogin = catchAsync(async (req: Request, res: Response) => {
-    const result = await AuthService.socialLoginFromDB(req.body);
 
-    sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: 'Logged in Successfully',
-        data: result
-    });
-});
-
-// delete user
+// delete User Account
 const deleteUser = catchAsync(async (req: Request, res: Response) => {
-    const result = await AuthService.deleteUserFromDB(req.user, req.body.password);
+    const { password } = req.body;
+
+    const result = await AuthService.deleteUserFromDB(req.user as any, password);
 
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
-        message: 'Account Deleted successfully',
+        message: 'Account deleted successfully',
         data: result
     });
 });
 
 export const AuthController = {
-    verifyEmail,
+    verifyPhone,
     loginUser,
     forgetPassword,
     resetPassword,
     changePassword,
     newAccessToken,
-    resendVerificationEmail,
-    socialLogin,
+    resendPhoneOTP,
     deleteUser
 };
