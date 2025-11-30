@@ -1,5 +1,5 @@
-import { USER_ROLES } from "../../../enums/user";
-import { IUser } from "./user.interface";
+import { HOST_STATUS, USER_ROLES } from "../../../enums/user";
+import { IHostRequestInput, IUser } from "./user.interface";
 import { JwtPayload, Secret } from "jsonwebtoken";
 import { User } from "./user.model";
 import { StatusCodes } from "http-status-codes";
@@ -91,9 +91,50 @@ const updateProfileToDB = async (
     return updateDoc;
 };
 
+const switchProfileToDB = async (userId: string, role: USER_ROLES.USER | USER_ROLES.HOST) => {
+    const user = await User.findById(userId);
+
+    if (!user) throw new ApiError(404, "This user is not found in the database");
+
+    if (![USER_ROLES.USER, USER_ROLES.HOST].includes(role)) throw new ApiError(400, "Role is mustbe either 'USER' or 'HOST'")
+
+    if (role === USER_ROLES.HOST && user.hostStatus !== HOST_STATUS.APPROVED) {
+        throw new ApiError(400, "User cannot switch to host before admin approval");
+    }
+
+    const result = await User.findByIdAndUpdate(userId, { role }, { new: true });
+
+    if (!result) throw new ApiError(400, "Failed to update role")
+
+    return result;
+
+}
+
+const createHostRequestToDB = async (userId: string, payload: IHostRequestInput) => {
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(404, "No user is found for this ID");
+
+    if (user.hostStatus === HOST_STATUS.APPROVED) throw new ApiError(400, "User is already a host");
+
+    user.nidFrontPic = payload.nidBackPic;
+    user.nidBackPic = payload.nidBackPic;
+    if (payload.drivingLicenseFrontPic) user.drivingLicenseFrontPic = payload.drivingLicenseFrontPic;
+    if (payload.drivingLicenseBackPic) user.drivingLicenseBackPic = payload.drivingLicenseBackPic;
+
+    // host PENDING
+    user.hostStatus = HOST_STATUS.PENDING;
+
+    await user.save();
+
+    return user;
+
+}
+
 export const UserService = {
     createUserToDB,
     getUserProfileFromDB,
     updateProfileToDB,
-    createAdminToDB
+    createAdminToDB,
+    switchProfileToDB,
+    createHostRequestToDB,
 };

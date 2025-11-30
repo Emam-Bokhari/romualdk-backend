@@ -12,7 +12,7 @@ const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { ...userData } = req.body;
 
-    console.log(userData,"payload")
+    console.log(userData, "payload")
 
     const result = await UserService.createUserToDB(userData);
 
@@ -78,9 +78,37 @@ const updateProfile = catchAsync(async (req, res) => {
   });
 });
 
-export const UserController = { 
-    createUser, 
-    createAdmin, 
-    getUserProfile, 
-    updateProfile
+const switchProfile = catchAsync(async (req, res) => {
+  const { role } = req.body;
+  const { id: userId } = req.user;
+  const result = await UserService.switchProfileToDB(userId, role);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Successfully switch the accounts",
+    data: result,
+  });
+
+})
+
+const createHostRequest = catchAsync(async (req, res) => {
+  const { id: userId } = req.user;
+  const data = req.body;
+  const result = await UserService.createHostRequestToDB(userId, data);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Successfully host requst send",
+    data: result,
+  })
+})
+
+export const UserController = {
+  createUser,
+  createAdmin,
+  getUserProfile,
+  updateProfile,
+  switchProfile,
+  createHostRequest,
 };

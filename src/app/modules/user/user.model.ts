@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { GENDER, USER_ROLES } from "../../../enums/user";
+import { GENDER, HOST_STATUS, USER_ROLES } from "../../../enums/user";
 import { IUser, UserModal } from "./user.interface";
 import bcrypt from "bcrypt";
 import ApiError from "../../../errors/ApiErrors";
@@ -21,6 +21,11 @@ const userSchema = new Schema<IUser, UserModal>(
             enum: Object.values(USER_ROLES),
             required: true,
         },
+        hostStatus: {
+            type: String,
+            enum: Object.values(HOST_STATUS),
+            required: false,
+        },
         phone: {
             type: String,
             required: true,
@@ -37,6 +42,22 @@ const userSchema = new Schema<IUser, UserModal>(
             lowercase: true,
         },
         profileImage: {
+            type: String,
+            required: false,
+        },
+        nidFrontPic: {
+            type: String,
+            required: true,
+        },
+        nidBackPic: {
+            type: String,
+            required: true,
+        },
+        drivingLicenseFrontPic: {
+            type: String,
+            required: false,
+        },
+        drivingLicenseBackPic: {
             type: String,
             required: false,
         },
@@ -107,15 +128,25 @@ userSchema.statics.isMatchPassword = async (password: string, hashPassword: stri
 
 //check user
 userSchema.pre('save', async function (next) {
-    //check user
-    const isExist = await User.findOne({ phone: this.phone });
-    if (isExist) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Phone number already exist!');
-    }
+   
+    if (this.isNew) {
+        const isExist = await User.findOne({ phone: this.phone });
+        if (isExist) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, 'Phone number already exist!');
+        }
 
-    //password hash
-    this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_rounds));
+        // password hash
+        if (this.password) {
+            this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_rounds));
+        }
+    } else {
+       
+        if (this.isModified('password') && this.password) {
+            this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_rounds));
+        }
+    }
     next();
 });
+
 
 export const User = model<IUser, UserModal>("User", userSchema)

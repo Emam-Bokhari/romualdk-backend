@@ -1,4 +1,27 @@
-type IFolderName = 'image' | 'media' | 'doc';
+export type IFolderName =
+    | "images"
+    | "seatingPlan"
+    | "nidFrontPic"
+    | "nidBackPic"
+    | "drivingLicenseFrontPic"
+    | "drivingLicenseBackPic"
+    | "businessProfileImage"
+    | "gallery"
+    | "profileImage"
+    | "image"
+    | "childImage"
+    | "license"
+    | "driverLicense"
+    | "insurance"
+    | "permits"
+    | "banner"
+    | "cover"
+    | "logo"
+    | "audio"
+    | "video"
+    | "document"
+    | "thumbnail"
+    | "others";
 
 //single file
 export const getSingleFilePath = (files: any, folderName: IFolderName) => {

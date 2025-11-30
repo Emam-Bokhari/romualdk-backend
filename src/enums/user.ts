@@ -11,6 +11,12 @@ export enum GENDER {
 }
 
 export enum STATUS {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
+    ACTIVE = "ACTIVE",
+    INACTIVE = "INACTIVE",
+}
+
+export enum HOST_STATUS {
+    PENDING = "PENDING",
+    APPROVED = "APPROVED",
+    REJECTED = "REJECTED"
 }

@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { GENDER, STATUS, USER_ROLES } from '../../../enums/user';
+import { GENDER, HOST_STATUS, STATUS, USER_ROLES } from '../../../enums/user';
 
 
 export type IUser = {
@@ -11,9 +11,10 @@ export type IUser = {
     email?: string;
     profileImage?: string;
     nidFrontPic: string;
+    nidBackPic: string;
+    hostStatus: HOST_STATUS;
     drivingLicenseFrontPic?: string;
     drivingLicenseBackPic?: string;
-    nidBackPic: string;
     password: string;
     dateOfBirth: string;
     gender?: GENDER;
@@ -25,6 +26,13 @@ export type IUser = {
         expireAt: Date;
     };
 };
+
+export interface IHostRequestInput {
+  nidFrontPic: string;
+  nidBackPic: string;
+  drivingLicenseFrontPic?: string;
+  drivingLicenseBackPic?: string;
+}
 
 export type UserModal = {
     isExistUserById(id: string): any;
