@@ -20,6 +20,10 @@ export type IUser = {
     gender?: GENDER;
     verified: boolean;
     status: STATUS;
+    location?: {
+        type: "Point";
+        coordinates: [number, number]; // [longitude, latitude],
+    };
     authentication?: {
         isResetPassword: boolean;
         oneTimeCode: number;
