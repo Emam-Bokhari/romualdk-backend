@@ -21,4 +21,4 @@ const favouriteCarSchema = new Schema<TFavouriteCar>(
     },
 );
 
-export const BookmarkEvent = model<TFavouriteCar>("FavouriteCar", favouriteCarSchema);
+export const FavouriteCar = model<TFavouriteCar>("FavouriteCar", favouriteCarSchema);

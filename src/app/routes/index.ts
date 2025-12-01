@@ -5,6 +5,7 @@ import { RuleRoutes } from '../modules/rule/rule.route';
 import { FaqRoutes } from '../modules/faq/faq.route';
 import { ReviewRoutes } from '../modules/review/review.route';
 import { FavouriteCarRoutes } from '../modules/favouriteCar/favouriteCar.route';
+import { ChatRoutes } from '../modules/chat/chat.routes';
 const router = express.Router();
 
 const apiRoutes = [
@@ -31,6 +32,10 @@ const apiRoutes = [
     {
         path: "/favourites",
         route: FavouriteCarRoutes
+    },
+    {
+        path: "/chats",
+        route: ChatRoutes
     }
 ]
 
