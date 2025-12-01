@@ -4,6 +4,7 @@ import { AuthRoutes } from '../modules/auth/auth.routes';
 import { RuleRoutes } from '../modules/rule/rule.route';
 import { FaqRoutes } from '../modules/faq/faq.route';
 import { ReviewRoutes } from '../modules/review/review.route';
+import { FavouriteCarRoutes } from '../modules/favouriteCar/favouriteCar.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -26,6 +27,10 @@ const apiRoutes = [
     {
         path: "/reviews",
         route: ReviewRoutes
+    },
+    {
+        path: "/favourites",
+        route: FavouriteCarRoutes
     }
 ]
 
