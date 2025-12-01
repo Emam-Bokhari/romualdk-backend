@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { GENDER, HOST_STATUS, USER_ROLES } from "../../../enums/user";
+import { GENDER, HOST_STATUS, STATUS, USER_ROLES } from "../../../enums/user";
 import { IUser, UserModal } from "./user.interface";
 import bcrypt from "bcrypt";
 import ApiError from "../../../errors/ApiErrors";
@@ -75,6 +75,11 @@ const userSchema = new Schema<IUser, UserModal>(
             type: String,
             enum: Object.values(GENDER),
             required: false,
+        },
+        status: {
+            type: String,
+            enum: Object.values(STATUS),
+            default: STATUS.ACTIVE,
         },
         verified: {
             type: Boolean,

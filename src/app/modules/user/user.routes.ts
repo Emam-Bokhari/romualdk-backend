@@ -11,11 +11,12 @@ import parseAllFilesData from '../../middlewares/parseAllFileData';
 
 const router = express.Router();
 
-router.get(
-    '/profile',
-    auth(USER_ROLES.ADMIN, USER_ROLES.USER),
-    UserController.getUserProfile
-);
+
+router.route("/profile")
+    .get(
+        auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+        UserController.getUserProfile)
+    .delete(auth(USER_ROLES.USER, USER_ROLES.HOST), UserController.deleteProfile)
 
 router.post(
     '/create-admin',
@@ -40,11 +41,18 @@ router
         UserController.createUser
     )
     .patch(
-        auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+        auth(USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.SUPER_ADMIN),
         fileUploadHandler(),
         parseAllFilesData({ fieldName: FOLDER_NAMES.PROFILE_IMAGE, forceSingle: true }),
         UserController.updateProfile
-    );
+    )
+    .get(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), UserController.getAllUsers);
+
+router.route("/:id")
+    .get(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), UserController.getUserById)
+    .delete(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), UserController.deleteUserById)
+
+router.patch("/status/:id", auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), UserController.updateUserStatusById)
 
 router.patch("/switch-profile", auth(USER_ROLES.USER, USER_ROLES.HOST), UserController.switchProfile)
 

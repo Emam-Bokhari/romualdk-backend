@@ -259,10 +259,9 @@ const updateUserStatusByIdToDB = async (
     return result;
 };
 
-
 const deleteUserByIdFromD = async (id: string) => {
     const user = await User.findOne({ _id: id, hostStatus: HOST_STATUS.NONE, role: USER_ROLES.USER });
-    
+
     if (!user) {
         throw new ApiError(404, "User doest not exist in the database");
     }
