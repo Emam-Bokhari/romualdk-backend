@@ -8,9 +8,7 @@ import validateRequest from '../../middlewares/validateRequest';
 import fileUploadHandler from '../../middlewares/fileUploaderHandler';
 import parseAllFilesData from '../../middlewares/parseAllFileData';
 
-
 const router = express.Router();
-
 
 router.route("/profile")
     .get(
@@ -65,9 +63,6 @@ router.route("/host-request/:id")
 
 router.route("/host-request/status/:id")
     .patch(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), UserController.changeHostRequestStatusById)
-
-
-
 
 
 export const UserRoutes = router;
