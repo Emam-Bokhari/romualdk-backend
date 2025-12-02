@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { AVAILABLE_DAYS, FUEL_TYPE, ICar, TRANSMISSION } from "./car.interface";
+import { AVAILABLE_DAYS, CAR_VERIFICATION_STATUS, FUEL_TYPE, ICar, TRANSMISSION } from "./car.interface";
 
 // Mongoose Schema
 const CarSchema = new Schema<ICar>(
@@ -36,12 +36,17 @@ const CarSchema = new Schema<ICar>(
             enum: Object.values(FUEL_TYPE),
             required: true,
         },
-        airConditioning: {
+        verificationStatus: {
             type: String,
+            enum: Object.values(CAR_VERIFICATION_STATUS),
+            default: CAR_VERIFICATION_STATUS.PENDING,
+        },
+        airConditioning: {
+            type: Boolean,
             required: true
         },
         gpsNavigation: {
-            type: String,
+            type: Boolean,
             required: true
         },
         mileage: {
@@ -49,7 +54,7 @@ const CarSchema = new Schema<ICar>(
             required: true
         },
         bluetooth: {
-            type: String,
+            type: Boolean,
             required: true
         },
         seatNumber: {

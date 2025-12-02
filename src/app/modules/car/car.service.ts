@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { HOST_STATUS, USER_ROLES } from "../../../enums/user"
 import ApiError from "../../../errors/ApiErrors";
 import { User } from "../user/user.model"
-import { ICar } from "./car.interface";
+import { CAR_VERIFICATION_STATUS, ICar } from "./car.interface";
 import { Car } from "./car.model";
 
 const createCarToDB = async (userId: string, payload: ICar) => {
@@ -25,7 +25,7 @@ const createCarToDB = async (userId: string, payload: ICar) => {
 }
 
 const getAllCarsFromDB = async () => {
-    const result = await Car.find();
+    const result = await Car.find({ verificationStatus: CAR_VERIFICATION_STATUS.APPROVED });
 
     if (!result || result.length === 0) {
         throw new ApiError(404, "No cars are found in the database")

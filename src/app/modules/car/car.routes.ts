@@ -21,6 +21,9 @@ router.route("/")
     .get(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), CarControllers.getAllCars)
 
 
+router.get("/my", auth(USER_ROLES.HOST), CarControllers.getOwnCars);
+
+
 router.route("/:id")
     .get(auth(USER_ROLES.ADMIN, USER_ROLES.HOST, USER_ROLES.SUPER_ADMIN, USER_ROLES.USER), CarControllers.getCarById)
     .patch(
@@ -35,7 +38,7 @@ router.route("/:id")
     )
     .delete(auth(USER_ROLES.HOST), CarControllers.deleteCarById)
 
-router.get("/my", auth(USER_ROLES.HOST), CarControllers.getOwnCars);
+
 
 
 export const CarRoutes = router;

@@ -22,6 +22,12 @@ export enum TRANSMISSION {
   AUTOMATIC = "AUTOMATIC"
 }
 
+export enum CAR_VERIFICATION_STATUS {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED"
+}
+
 export interface ICar {
   userId: Types.ObjectId;
   brand: string;
@@ -29,13 +35,14 @@ export interface ICar {
   year: number;
   transmission: TRANSMISSION;
   fuelType: FUEL_TYPE;
-  airConditioning: string;
-  gpsNavigation: string;
+  airConditioning: boolean;
+  gpsNavigation: boolean;
   mileage: string;
-  bluetooth: string;
+  bluetooth: boolean;
   seatNumber: number;
   color: string;
   about: string;
+  verificationStatus: CAR_VERIFICATION_STATUS;
   shortDescription: string;
   licensePlate: string;
   carRegistrationPaperFrontPic: string;
