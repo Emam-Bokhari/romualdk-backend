@@ -8,6 +8,7 @@ import { FavouriteCarRoutes } from '../modules/favouriteCar/favouriteCar.route';
 import { ChatRoutes } from '../modules/chat/chat.routes';
 import { MessageRoutes } from '../modules/message/message.routes';
 import { CarRoutes } from '../modules/car/car.routes';
+
 const router = express.Router();
 
 const apiRoutes = [
@@ -44,8 +45,8 @@ const apiRoutes = [
         route: MessageRoutes
     },
     {
-        path:"/cars",
-        route:CarRoutes
+        path: "/cars",
+        route: CarRoutes
     }
 ]
 

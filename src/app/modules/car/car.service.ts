@@ -160,6 +160,88 @@ const deleteCarByIdFromDB = async (userId: string, id: string) => {
     return result;
 }
 
+const getAvailability = async (carId: string, dateString: string) => {
+  const targetDate = new Date(dateString);
+  const normalizedDate = new Date(
+    Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate())
+  );
+
+  const car = await Car.findById(carId).select(
+    "isActive availableDays defaultStartTime defaultEndTime blockedDates"
+  );
+
+  if (!car) throw new ApiError(404, "Car not found");
+  if (!car.isActive) {
+    return generateBlockedResponse(normalizedDate, "Car is not active");
+  }
+
+  // check if host block manually
+  const isManuallyBlocked = car.blockedDates?.some(blocked => {
+    const blockedDate = new Date(blocked.date);
+    return blockedDate.toISOString().split("T")[0] === normalizedDate.toISOString().split("T")[0];
+  });
+
+  if (isManuallyBlocked) {
+    return generateBlockedResponse(normalizedDate, "Blocked by host");
+  }
+
+  // check if available days
+  const dayName = normalizedDate
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toUpperCase(); // "FRIDAY"
+
+  const isDayAvailable = car.availableDays.some(
+    (day: string) => day.toUpperCase() === dayName
+  );
+
+  if (!isDayAvailable) {
+    return generateBlockedResponse(normalizedDate, "Car not available on this day");
+  }
+
+  // 3. Operating hours
+  const startHour = car.defaultStartTime
+    ? parseInt(car.defaultStartTime.split(":")[0], 10)
+    : 0;
+
+  const endHour = car.defaultEndTime
+    ? parseInt(car.defaultEndTime.split(":")[0], 10)
+    : 23;
+
+  // 4. Final slots
+  const slots = Array.from({ length: 24 }, (_, hour) => {
+    const withinOperatingHours = hour >= startHour && hour < endHour;
+
+    return {
+      hour,
+      time: `${String(hour).padStart(2, "0")}:00`,
+      isAvailable: withinOperatingHours,
+      blocked: !withinOperatingHours,
+      blockedReason: withinOperatingHours ? null : "Outside operating hours",
+    };
+  });
+
+  return {
+    date: normalizedDate.toISOString().split("T")[0],
+    isFullyBlocked: false,
+    blockedReason: null,
+    slots,
+  };
+};
+
+// Helper function
+const generateBlockedResponse = (date: Date, reason: string) => ({
+  date: date.toISOString().split("T")[0],
+  isFullyBlocked: true,
+  blockedReason: reason,
+  slots: Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    time: `${String(hour).padStart(2, "0")}:00`,
+    isAvailable: false,
+    blocked: true,
+    blockedReason: reason,
+  })),
+});
+
 export const CarServices = {
     createCarToDB,
     getAllCarsFromDB,
@@ -167,4 +249,5 @@ export const CarServices = {
     getCarByIdFromDB,
     updateCarByIdToDB,
     deleteCarByIdFromDB,
+    getAvailability,
 }

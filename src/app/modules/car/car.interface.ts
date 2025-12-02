@@ -28,6 +28,13 @@ export enum CAR_VERIFICATION_STATUS {
   REJECTED = "REJECTED"
 }
 
+export interface IBlockedDate {
+  date: Date;
+  reason?: string;            
+  blockedBy: Types.ObjectId;     
+  createdAt?: Date;
+}
+
 export interface ICar {
   userId: Types.ObjectId;
   brand: string;
@@ -56,6 +63,7 @@ export interface ICar {
   pickupPoint: { type: "Point"; coordinates: [number, number] };
   availableDays: AVAILABLE_DAYS[];
   facilities: string[];
+  blockedDates?: IBlockedDate[];
   defaultStartTime?: string; // e.g., "09:00"
   defaultEndTime?: string;   // e.g., "21:00"
   isActive: boolean;

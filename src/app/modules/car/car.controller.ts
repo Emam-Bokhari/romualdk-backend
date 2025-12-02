@@ -1,3 +1,4 @@
+import ApiError from "../../../errors/ApiErrors";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { CarServices } from "./car.service";
@@ -91,6 +92,40 @@ const deleteCarById = catchAsync(async (req, res) => {
 
 })
 
+const getAvailability = catchAsync(async (req, res) => {
+  const { carId } = req.params;
+  const { date } = req.query;
+
+  // Validation
+  if (!carId) {
+    throw new ApiError(400, "Car ID is required");
+  }
+
+  if (!date || typeof date !== "string") {
+    throw new ApiError(
+      400,
+      "Date query parameter is required (e.g., ?date=2025-12-12)"
+    );
+  }
+
+  // YYYY-MM-DD format check
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new ApiError(400, "Invalid date format. Use YYYY-MM-DD");
+  }
+
+  const availability = await CarServices.getAvailability(carId, date);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Car availability fetched successfully",
+    data: {
+      carId,
+      ...availability,
+    },
+  });
+});
+
 export const CarControllers = {
     createCar,
     getAllCars,
@@ -98,4 +133,5 @@ export const CarControllers = {
     getCarById,
     updateCarById,
     deleteCarById,
+    getAvailability
 }

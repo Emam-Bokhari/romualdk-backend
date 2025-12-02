@@ -1,5 +1,15 @@
 import { model, Schema } from "mongoose";
-import { AVAILABLE_DAYS, CAR_VERIFICATION_STATUS, FUEL_TYPE, ICar, TRANSMISSION } from "./car.interface";
+import { AVAILABLE_DAYS, CAR_VERIFICATION_STATUS, FUEL_TYPE, IBlockedDate, ICar, TRANSMISSION } from "./car.interface";
+
+const blockedDateSchema = new Schema<IBlockedDate>(
+    {
+        date: { type: Date, required: true },
+        reason: { type: String },
+        blockedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        createdAt: { type: Date, default: () => new Date() },
+    },
+    { _id: false }
+);
 
 // Mongoose Schema
 const CarSchema = new Schema<ICar>(
@@ -76,6 +86,10 @@ const CarSchema = new Schema<ICar>(
             type: String,
             required: true,
             maxlength: 160
+        },
+        blockedDates: {
+            type: [blockedDateSchema],
+            default: []
         },
         licensePlate: {
             type: String,
