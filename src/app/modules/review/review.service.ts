@@ -106,7 +106,6 @@ const getReviewSummaryFromDB = async (targetId: string, type: REVIEW_TYPE.CAR | 
         throw new ApiError(400, "Invalid type. Use 'CAR' or 'HOST'");
     }
 
-
     const isCar = type === REVIEW_TYPE.CAR;
     const matchQuery = isCar ? { carId: objectId } : { hostId: objectId };
 

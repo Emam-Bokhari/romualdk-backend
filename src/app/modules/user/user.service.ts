@@ -55,7 +55,7 @@ const getAdminFromDB = async (query: any) => {
 
 const deleteAdminFromDB = async (id: any) => {
     const isExistAdmin = await User.findByIdAndDelete(id);
-    
+
     if (!isExistAdmin) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete Admin');
     }
@@ -340,6 +340,61 @@ const deleteProfileFromDB = async (id: string) => {
     return result;
 };
 
+const getAllHostsFromDB = async (query: any) => {
+
+
+    const baseQuery = User.find({ hostStatus: HOST_STATUS.APPROVED });
+
+    const queryBuilder = new QueryBuilder(baseQuery, query)
+        .search(["firstName", "lastName", "fullName", "email", "phone"])
+        .sort()
+        .fields()
+        .filter()
+        .paginate();
+
+    const hosts = await queryBuilder.modelQuery;
+
+    const meta = await queryBuilder.countTotal();
+
+    if (!hosts) throw new ApiError(404, "No hosts are found in the database");
+
+    return {
+        data: hosts,
+        meta,
+    }
+
+}
+
+const getHostByIdFromDB = async (id: string) => {
+    const result = await User.findOne({ _id: id, hostStatus: HOST_STATUS.APPROVED, role: USER_ROLES.USER });
+
+    if (!result) throw new ApiError(404, "No host is found in the database by this ID");
+
+    return result;
+
+}
+
+const updateHostStatusByIdToDB = async (
+    id: string,
+    status: STATUS.ACTIVE | STATUS.INACTIVE
+) => {
+    if (![STATUS.ACTIVE, STATUS.INACTIVE].includes(status)) {
+        throw new ApiError(400, "Status must be either 'ACTIVE' or 'INACTIVE'");
+    }
+
+    const host = await User.findOne({ _id: id, hostStatus: HOST_STATUS.APPROVED });
+    if (!host) {
+        throw new ApiError(404, "No host is found by this host ID");
+    }
+
+    const result = await User.findByIdAndUpdate(id, { status }, { new: true });
+    if (!result) {
+        throw new ApiError(400, "Failed to change status by this host ID");
+    }
+
+    return result;
+};
+
 export const UserService = {
     createUserToDB,
     getAdminFromDB,
@@ -358,4 +413,7 @@ export const UserService = {
     updateUserStatusByIdToDB,
     deleteUserByIdFromD,
     deleteProfileFromDB,
+    getAllHostsFromDB,
+    getHostByIdFromDB,
+    updateHostStatusByIdToDB,
 };
