@@ -5,6 +5,8 @@ export enum FOLDER_NAMES {
     GALLERY = "gallery",
     PROFILE_IMAGE = "profileImage",
     NID_FRONT_PIC = "nidFrontPic",
+    CAR_REGISTRATION_PAPER_FRONT_PIC = "carRegistrationPaperFrontPic",
+    CAR_REGISTRATION_PAPER_BACK_PIC = "carRegistrationPaperBackPic",
     NID_BACK_PIC = "nidBackPic",
     DRIVING_LICENSE_FRONT_PIC = "drivingLicenseFrontPic",
     DRIVING_LICENSE_BACK_PIC = "drivingLicenseBackPic",

@@ -36,6 +36,12 @@ const fileUploadHandler = () => {
                 case "nidBackPic":
                     uploadDir = path.join(baseUploadDir, "nidBackPic");
                     break;
+                case "carRegistrationPaperFrontPic":
+                    uploadDir = path.join(baseUploadDir, "carRegistrationPaperFrontPic");
+                    break;
+                case "carRegistrationPaperBackPic":
+                    uploadDir = path.join(baseUploadDir, "carRegistrationPaperBackPic");
+                    break;
                 case "drivingLicenseFrontPic":
                     uploadDir = path.join(baseUploadDir, "drivingLicenseFrontPic");
                     break;
@@ -121,6 +127,8 @@ const fileUploadHandler = () => {
             file.fieldname === "seatingPlan" ||
             file.fieldname === "nidFrontPic" ||
             file.fieldname === "nidBackPic" ||
+            file.fieldname === "carRegistrationPaperFrontPic" ||
+            file.fieldname === "carRegistrationPaperBackPic" ||
             file.fieldname === "drivingLicenseFrontPic" ||
             file.fieldname === "drivingLicenseBackPic" ||
             file.fieldname === "businessProfileImage" ||
@@ -247,6 +255,8 @@ const fileUploadHandler = () => {
         { name: "seatingPlan", maxCount: 10 },
         { name: "nidFrontPic", maxCount: 1 },
         { name: "nidBackPic", maxCount: 1 },
+        { name: "carRegistrationPaperFrontPic", maxCount: 1 },
+        { name: "carRegistrationPaperBackPic", maxCount: 1 },
         { name: "drivingLicenseFrontPic", maxCount: 1 },
         { name: "drivingLicenseBackPic", maxCount: 1 },
         { name: "businessProfileImage", maxCount: 1 }, // Added for business profile image

@@ -3,6 +3,8 @@ export type IFolderName =
     | "seatingPlan"
     | "nidFrontPic"
     | "nidBackPic"
+    | "carRegistrationPaperFrontPic"
+    | "carRegistrationPaperBackPic"
     | "drivingLicenseFrontPic"
     | "drivingLicenseBackPic"
     | "businessProfileImage"

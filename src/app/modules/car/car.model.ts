@@ -79,17 +79,15 @@ const CarSchema = new Schema<ICar>(
             uppercase: true,
             trim: true
         },
-        carRegistration: {
-            frontImage: {
-                type: String,
-                required: true
-            },
-            backImage: {
-                type: String,
-                required: true
-            },
+        carRegistrationPaperFrontPic: {
+            type: String,
+            required: true,
         },
-        photos: [
+        carRegistrationPaperBackPic: {
+            type: String,
+            required: true,
+        },
+        images: [
             {
                 type: String,
                 required: true
@@ -161,6 +159,7 @@ const CarSchema = new Schema<ICar>(
     },
     {
         timestamps: true, // adds createdAt & updatedAt automatically
+        versionKey: false,
     }
 );
 

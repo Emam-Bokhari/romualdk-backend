@@ -38,7 +38,8 @@ export interface ICar {
   about: string;
   shortDescription: string;
   licensePlate: string;
-  carRegistration: { frontImage: string; backImage: string };
+  carRegistrationPaperFrontPic:string;
+  carRegistrationPaperBackPic:string;
   photos: string[];
   dailyPrice: number;
   hourlyPrice?: number;
