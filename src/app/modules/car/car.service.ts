@@ -245,19 +245,19 @@ const getAvailability = async (carId: string, dateString: string) => {
   if (!car) throw new ApiError(404, "Car not found");
   if (!car.isActive) return generateBlockedResponse(normalizedDate, "Car is not active");
 
-  // ম্যানুয়াল ব্লক
+  // manual block
   const isManuallyBlocked = car.blockedDates?.some((b: any) =>
     new Date(b.date).toISOString().split("T")[0] === normalizedDate.toISOString().split("T")[0]
   );
   if (isManuallyBlocked) return generateBlockedResponse(normalizedDate, "Blocked by host");
 
-  // দিন চেক
+  // days check
   const dayName = normalizedDate.toLocaleDateString("en-US", { weekday: "long" }).toUpperCase() as AVAILABLE_DAYS;
   if (!car.availableDays.includes(dayName)) {
     return generateBlockedResponse(normalizedDate, "Car not available on this day");
   }
 
-  // availableHours থেকে ওপেন ঘন্টা বের করি (string[] → number[] কনভার্ট)
+  // availableHours string[] → number[] convert
   let openHoursSet = new Set<number>();
 
   if (car.availableHours && car.availableHours.length > 0) {
@@ -268,7 +268,7 @@ const getAvailability = async (carId: string, dateString: string) => {
       }
     });
   }
-  // যদি availableHours না থাকে → defaultStartTime/endTime থেকে নেব
+  // if not available hours → defaultStartTime/endTime 
   else if (car.defaultStartTime && car.defaultEndTime) {
     const start = parseInt(car.defaultStartTime.split(":")[0], 10);
     let end = parseInt(car.defaultEndTime.split(":")[0], 10);
@@ -278,11 +278,11 @@ const getAvailability = async (carId: string, dateString: string) => {
       openHoursSet.add(h % 24);
     }
   } else {
-    // কিছুই না থাকলে → সব ঘন্টা ওপেন
+    // if not available hours and default start time, end time than appears 24 hour slots
     for (let i = 0; i < 24; i++) openHoursSet.add(i);
   }
 
-  // ফাইনাল স্লট
+  // final slots
   const slots = Array.from({ length: 24 }, (_, hour) => {
     const isAvailable = openHoursSet.has(hour);
     return {
