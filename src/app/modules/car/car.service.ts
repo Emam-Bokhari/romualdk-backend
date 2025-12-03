@@ -285,7 +285,6 @@ const createCarBlockedDatesToDB = async (
 };
 
 
-
 export const CarServices = {
     createCarToDB,
     getAllCarsFromDB,

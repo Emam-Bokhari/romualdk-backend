@@ -1,8 +1,6 @@
 import { Types } from "mongoose";
 import { Review } from "./review.model";
 import { REVIEW_TYPE, TReview } from "./review.interface";
-
-import { User } from "../user/user.model";
 import ApiError from "../../../errors/ApiErrors";
 import { Car } from "../car/car.model";
 
@@ -13,18 +11,21 @@ const createReviewToDB = async (payload: TReview, reviewerId: string) => {
         throw new ApiError(400, "carId is required");
     }
 
-    // 1. Car exist করে কিনা + তার host কে?
-    const car = await Car.findById(carId).populate("userId"); // hostId হল User _id
+
+    const car = await Car.findById(carId) // hostId = User _id
     if (!car) throw new ApiError(404, "Car not found");
 
     const hostUserId = car.userId.toString();
 
-    // 2. নিজের গাড়িতে রিভিউ দেওয়া যাবে না
     if (hostUserId === reviewerId) {
         throw new ApiError(400, "You cannot review your own car");
     }
 
-    // 3. Payload setup
+    if (!Number.isInteger(payload.ratingValue) || payload.ratingValue < 1 || payload.ratingValue > 5) {
+        throw new ApiError(400, "Rating must be an integer between 1 and 5");
+    }
+
+
     const reviewData: TReview = {
         carId: new Types.ObjectId(carId),
         hostId: car.userId, // User _id
@@ -33,76 +34,26 @@ const createReviewToDB = async (payload: TReview, reviewerId: string) => {
         feedback: payload.feedback?.trim(),
     };
 
-    // 4. Already reviewed?
+    // check if already reviewed
     const already = await Review.findOne({
         carId: reviewData.carId,
         fromUserId: reviewData.fromUserId,
     });
     if (already) throw new ApiError(400, "You have already reviewed this car");
 
-    // 5. Create review
-    const review = await Review.create(reviewData);
 
-    // // Optional: Car এ averageRating আপডেট করো (after create)
-    // await updateCarAverageRating(carId);
-    // // Host (User) এর average rating আপডেট করো
-    // await updateHostAverageRating(hostUserId);
+    const review = await Review.create(reviewData);
 
     return review;
 };
 
-// Function to update the average rating of the Host (User)
-const updateHostAverageRating = async (hostUserId: string) => {
-    const result = await Review.aggregate([
-        { $match: { hostId: new Types.ObjectId(hostUserId) } },
-        {
-            $group: {
-                _id: null,
-                totalRating: { $sum: "$ratingValue" },
-                totalReviews: { $sum: 1 },
-            },
-        },
-    ]);
-
-    const avg = result.length > 0
-        ? result[0].totalRating / result[0].totalReviews
-        : 0;
-
-    await User.findByIdAndUpdate(hostUserId, {
-        averageRating: Number(avg.toFixed(2)),
-        totalReviews: result[0]?.totalReviews || 0,
-    });
-};
-
-// Update the average rating of the Car (if the Car model includes an averageRating field)
-const updateCarAverageRating = async (carId: string | Types.ObjectId) => {
-    const result = await Review.aggregate([
-        { $match: { carId: new Types.ObjectId(carId) } },
-        {
-            $group: {
-                _id: null,
-                avgRating: { $avg: "$ratingValue" },
-                total: { $sum: 1 },
-            },
-        },
-    ]);
-
-    const avg = result.length > 0 ? result[0].avgRating : 0;
-
-    await Car.findByIdAndUpdate(carId, {
-        averageRating: Number(avg.toFixed(2)),
-        totalReviews: result[0]?.total || 0,
-    });
-};
 
 const getReviewSummaryFromDB = async (targetId: string, type: REVIEW_TYPE.CAR | REVIEW_TYPE.HOST) => {
-
     const objectId = new Types.ObjectId(targetId);
 
     if (!targetId || !type) {
         throw new ApiError(400, "targetId and type (CAR/HOST) are required");
     }
-
     if (type !== REVIEW_TYPE.CAR && type !== REVIEW_TYPE.HOST) {
         throw new ApiError(400, "Invalid type. Use 'CAR' or 'HOST'");
     }
@@ -110,9 +61,10 @@ const getReviewSummaryFromDB = async (targetId: string, type: REVIEW_TYPE.CAR | 
     const isCar = type === REVIEW_TYPE.CAR;
     const matchQuery = isCar ? { carId: objectId } : { hostId: objectId };
 
-    // Summary
+
     const summary = await Review.aggregate([
         { $match: matchQuery },
+        { $match: { ratingValue: { $in: [1, 2, 3, 4, 5] } } },
         { $group: { _id: "$ratingValue", count: { $sum: 1 } } },
     ]);
 
@@ -121,7 +73,6 @@ const getReviewSummaryFromDB = async (targetId: string, type: REVIEW_TYPE.CAR | 
     const average = totalReviews ? totalScore / totalReviews : 0;
 
     const starCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-
     summary.forEach((item) => {
         const rating = item._id as number;
         if (rating >= 1 && rating <= 5) {
@@ -129,7 +80,7 @@ const getReviewSummaryFromDB = async (targetId: string, type: REVIEW_TYPE.CAR | 
         }
     });
 
-    // Reviews list
+    // reviews list 
     const reviews = await Review.find(matchQuery)
         .populate({
             path: "fromUserId",
@@ -146,7 +97,7 @@ const getReviewSummaryFromDB = async (targetId: string, type: REVIEW_TYPE.CAR | 
             _id: review.fromUserId._id,
             name: review.fromUserId.name,
             profileImage: review.fromUserId.profileImage,
-        }
+        },
     }));
 
     return {
@@ -156,6 +107,7 @@ const getReviewSummaryFromDB = async (targetId: string, type: REVIEW_TYPE.CAR | 
         reviews: reviewList,
     };
 };
+
 
 export const ReviewServices = {
     createReviewToDB,
