@@ -20,7 +20,7 @@ const createCar = catchAsync(async (req, res) => {
 })
 
 const getAllCars = catchAsync(async (req, res) => {
-    const result = await CarServices.getAllCarsFromDB();
+    const result = await CarServices.getAllCarsFromDB(req.query);
 
     sendResponse(res, {
         success: true,
@@ -46,7 +46,7 @@ const getOwnCars = catchAsync(async (req, res) => {
 })
 
 const getAllCarsForVerifications = catchAsync(async (req, res) => {
-    const result = await CarServices.getAllCarsForVerificationsFromDB();
+    const result = await CarServices.getAllCarsForVerificationsFromDB(req.query);
 
     sendResponse(res, {
         success: true,

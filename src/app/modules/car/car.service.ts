@@ -4,6 +4,7 @@ import ApiError from "../../../errors/ApiErrors";
 import { User } from "../user/user.model"
 import { AVAILABLE_DAYS, CAR_VERIFICATION_STATUS, IBlockedDate, ICar } from "./car.interface";
 import { Car } from "./car.model";
+import QueryBuilder from "../../builder/queryBuilder";
 
 const createCarToDB = async (userId: string, payload: ICar) => {
   const user = await User.findOne({ _id: userId, hostStatus: HOST_STATUS.APPROVED, role: USER_ROLES.HOST });
@@ -24,28 +25,61 @@ const createCarToDB = async (userId: string, payload: ICar) => {
 
 }
 
-// for feed 
-const getAllCarsFromDB = async () => {
-  const result = await Car.find({ verificationStatus: CAR_VERIFICATION_STATUS.APPROVED }).populate({path:"userId",select:"firstName lastName fullName role profileImage"});
 
-  if (!result || result.length === 0) {
+
+// for feed 
+const getAllCarsFromDB = async (query: any) => {
+
+  const baseQuery = Car.find({ verificationStatus: CAR_VERIFICATION_STATUS.APPROVED }).populate({ path: "userId", select: "firstName lastName fullName role profileImage" });
+
+  const queryBuilder = new QueryBuilder(baseQuery, query)
+    .search(["brand", "model", "transmission", "color", "city", "licensePlate"])
+    .sort()
+    .fields()
+    .filter()
+    .paginate();
+
+  const cars = await queryBuilder.modelQuery;
+
+  const meta = await queryBuilder.countTotal();
+
+  if (!cars || cars.length === 0) {
     throw new ApiError(404, "No cars are found in the database")
   };
 
-  return result;
+  return {
+    data: cars,
+    meta,
+  }
 }
 
 // for verifications, dashboard
-const getAllCarsForVerificationsFromDB = async () => {
-  const result = await Car.find({
-    verificationStatus: { $in: [CAR_VERIFICATION_STATUS.PENDING, CAR_VERIFICATION_STATUS.REJECTED, CAR_VERIFICATION_STATUS.APPROVED] }
-  }).populate({path:"userId",select:"firstName lastName fullName role profileImage"});
+const getAllCarsForVerificationsFromDB = async (query: any) => {
 
-  if (!result || result.length === 0) {
+  const baseQuery =  Car.find({
+    verificationStatus: { $in: [CAR_VERIFICATION_STATUS.PENDING, CAR_VERIFICATION_STATUS.REJECTED, CAR_VERIFICATION_STATUS.APPROVED] }
+  }).populate({ path: "userId", select: "firstName lastName fullName role profileImage" });
+
+  const queryBuilder = new QueryBuilder(baseQuery, query)
+    .search(["brand", "model", "transmission", "color", "city", "licensePlate"])
+    .sort()
+    .fields()
+    .filter()
+    .paginate();
+
+    const cars = await queryBuilder.modelQuery;
+
+  const meta = await queryBuilder.countTotal();
+
+
+  if (!cars || cars.length === 0) {
     throw new ApiError(404, "No cars are found in the database")
   };
 
-  return result;
+  return {
+    data: cars,
+    meta,
+  }
 }
 
 const updateCarVerificationStatusByIdToDB = async (carId: string, carVerificationStatus: CAR_VERIFICATION_STATUS.APPROVED | CAR_VERIFICATION_STATUS.PENDING | CAR_VERIFICATION_STATUS.REJECTED) => {
@@ -73,7 +107,7 @@ const getOwnCarsFromDB = async (userId: string) => {
     throw new ApiError(404, "No hosts are found by this ID")
   };
 
-  const result = await Car.find({ userId }).populate({path:"userId",select:"firstName lastName fullName role profileImage"});
+  const result = await Car.find({ userId }).populate({ path: "userId", select: "firstName lastName fullName role profileImage" });
 
   if (!result || result.length === 0) {
     return []
@@ -84,7 +118,7 @@ const getOwnCarsFromDB = async (userId: string) => {
 }
 
 const getCarByIdFromDB = async (id: string) => {
-  const result = await Car.findById(id).populate({path:"userId",select:"firstName lastName fullName role profileImage"});
+  const result = await Car.findById(id).populate({ path: "userId", select: "firstName lastName fullName role profileImage" });
 
   if (!result) {
     return {}
