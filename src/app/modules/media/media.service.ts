@@ -1,4 +1,5 @@
 import ApiError from "../../../errors/ApiErrors";
+import unlinkFile from "../../../shared/unlinkFile";
 import { IMedia, MEDIA_TYPE } from "./media.interface";
 import { Media } from "./media.model";
 
@@ -98,9 +99,39 @@ const updateMediaByIdToDB = async (
     return updatedMedia;
 };
 
+const updateMediaStatusByIdToDB = async (id: string, status: boolean) => {
+  const media = await Media.findById(id);
+  if (!media) {
+    throw new ApiError(404, "No media found in the database");
+  }
+
+  const result = await Media.findByIdAndUpdate(id, { status }, { new: true });
+  if (!result) {
+    throw new ApiError(400, "Failed to update status");
+  }
+
+  return result;
+};
+
+const deleteMediaByIdToDB = async (id: string) => {
+  const isBannerExist: any = await Media.findById({ _id: id });
+
+  // delete from folder
+  if (isBannerExist) {
+    unlinkFile(isBannerExist?.image);
+  }
+
+  // delete from database
+  const result = await Media.findByIdAndDelete(id);
+
+  return result;
+};
+
 
 export const MediaServices = {
     createMediaToDB,
     getMediaByTypeFromDB,
     updateMediaByIdToDB,
+    updateMediaStatusByIdToDB,
+    deleteMediaByIdToDB,
 }
