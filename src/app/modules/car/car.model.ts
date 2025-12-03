@@ -151,6 +151,12 @@ const CarSchema = new Schema<ICar>(
             enum: Object.values(AVAILABLE_DAYS),
             required: true,
         }],
+        availableHours: [
+            {
+                type: String,
+                required: false,
+            }
+        ],
         facilities: [
             {
                 type: String,

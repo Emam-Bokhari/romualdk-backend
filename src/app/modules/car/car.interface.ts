@@ -30,8 +30,8 @@ export enum CAR_VERIFICATION_STATUS {
 
 export interface IBlockedDate {
   date: Date;
-  reason?: string;            
-  blockedBy: Types.ObjectId;     
+  reason?: string;
+  blockedBy: Types.ObjectId;
   createdAt?: Date;
 }
 
@@ -62,6 +62,7 @@ export interface ICar {
   city: string;
   pickupPoint: { type: "Point"; coordinates: [number, number] };
   availableDays: AVAILABLE_DAYS[];
+  availableHours: string[];
   facilities: string[];
   blockedDates?: IBlockedDate[];
   defaultStartTime?: string; // e.g., "09:00"
