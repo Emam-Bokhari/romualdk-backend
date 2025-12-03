@@ -46,6 +46,21 @@ const getAllCarsForVerificationsFromDB = async () => {
   return result;
 }
 
+const updateCarVerificationStatusByIdToDB = async (carId: string, carVerificationStatus: CAR_VERIFICATION_STATUS.APPROVED | CAR_VERIFICATION_STATUS.PENDING | CAR_VERIFICATION_STATUS.REJECTED) => {
+
+  if (![CAR_VERIFICATION_STATUS.PENDING, CAR_VERIFICATION_STATUS.APPROVED, CAR_VERIFICATION_STATUS.REJECTED].includes(carVerificationStatus)) {
+    throw new ApiError(400, "Car verification status must be either 'PENDING','APPROVED' or 'REJECTED'");
+  }
+
+  const result = await User.findByIdAndUpdate(carId, { carVerificationStatus }, { new: true });
+  if (!result) {
+    throw new ApiError(400, "Failed to change car verification status by this host ID");
+  }
+
+  return result;
+
+}
+
 // for host role
 const getOwnCarsFromDB = async (userId: string) => {
   const user = await User.findOne({ _id: userId, role: USER_ROLES.HOST, hostStatus: HOST_STATUS.APPROVED });
@@ -308,4 +323,5 @@ export const CarServices = {
   getAvailability,
   createCarBlockedDatesToDB,
   getAllCarsForVerificationsFromDB,
+  updateCarVerificationStatusByIdToDB,
 }
