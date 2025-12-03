@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { HOST_STATUS, USER_ROLES } from "../../../enums/user"
 import ApiError from "../../../errors/ApiErrors";
 import { User } from "../user/user.model"
-import { AVAILABLE_DAYS, CAR_VERIFICATION_STATUS, ICar } from "./car.interface";
+import { AVAILABLE_DAYS, CAR_VERIFICATION_STATUS, IBlockedDate, ICar } from "./car.interface";
 import { Car } from "./car.model";
 
 const createCarToDB = async (userId: string, payload: ICar) => {
@@ -160,77 +160,6 @@ const deleteCarByIdFromDB = async (userId: string, id: string) => {
     return result;
 }
 
-// const getAvailability = async (carId: string, dateString: string) => {
-//   const targetDate = new Date(dateString);
-//   const normalizedDate = new Date(
-//     Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate())
-//   );
-
-//   const car = await Car.findById(carId).select(
-//     "isActive availableDays defaultStartTime defaultEndTime blockedDates"
-//   );
-
-//   if (!car) throw new ApiError(404, "Car not found");
-//   if (!car.isActive) {
-//     return generateBlockedResponse(normalizedDate, "Car is not active");
-//   }
-
-//   // check if host block manually
-//   const isManuallyBlocked = car.blockedDates?.some(blocked => {
-//     const blockedDate = new Date(blocked.date);
-//     return blockedDate.toISOString().split("T")[0] === normalizedDate.toISOString().split("T")[0];
-//   });
-
-//   if (isManuallyBlocked) {
-//     return generateBlockedResponse(normalizedDate, "Blocked by host");
-//   }
-
-//   // check if available
-//   const dayName = normalizedDate
-//     .toLocaleDateString("en-US", { weekday: "long" })
-//     .toUpperCase(); // "FRIDAY"
-
-//   const isDayAvailable = car.availableDays.some(
-//     (day: string) => day.toUpperCase() === dayName
-//   );
-
-//   if (!isDayAvailable) {
-//     return generateBlockedResponse(normalizedDate, "Car not available on this day");
-//   }
-
-//   // 3. Operating hours
-//   const startHour = car.defaultStartTime
-//     ? parseInt(car.defaultStartTime.split(":")[0], 10)
-//     : 0;
-
-//   const endHour = car.defaultEndTime
-//     ? parseInt(car.defaultEndTime.split(":")[0], 10)
-//     : 23;
-
-//   // 4. Final slots
-//   const slots = Array.from({ length: 24 }, (_, hour) => {
-//     const withinOperatingHours = hour >= startHour && hour < endHour;
-
-//     return {
-//       hour,
-//       time: `${String(hour).padStart(2, "0")}:00`,
-//       isAvailable: withinOperatingHours,
-//       blocked: !withinOperatingHours,
-//       blockedReason: withinOperatingHours ? null : "Outside operating hours",
-//     };
-//   });
-
-//   return {
-//     date: normalizedDate.toISOString().split("T")[0],
-//     isFullyBlocked: false,
-//     blockedReason: null,
-//     slots,
-//   };
-// };
-
-// // Helper function
-
-
 
 const getAvailability = async (carId: string, dateString: string) => {
   const targetDate = new Date(dateString);
@@ -245,11 +174,11 @@ const getAvailability = async (carId: string, dateString: string) => {
   if (!car) throw new ApiError(404, "Car not found");
   if (!car.isActive) return generateBlockedResponse(normalizedDate, "Car is not active");
 
-  // manual block
-  const isManuallyBlocked = car.blockedDates?.some((b: any) =>
+  // manual block with host reason
+  const blockedEntry = car.blockedDates?.find((b: any) =>
     new Date(b.date).toISOString().split("T")[0] === normalizedDate.toISOString().split("T")[0]
   );
-  if (isManuallyBlocked) return generateBlockedResponse(normalizedDate, "Blocked by host");
+  if (blockedEntry) return generateBlockedResponse(normalizedDate, blockedEntry.reason || "Blocked by host");
 
   // days check
   const dayName = normalizedDate.toLocaleDateString("en-US", { weekday: "long" }).toUpperCase() as AVAILABLE_DAYS;
@@ -267,8 +196,8 @@ const getAvailability = async (carId: string, dateString: string) => {
         openHoursSet.add(hour);
       }
     });
-  }
-  // if not available hours → defaultStartTime/endTime 
+  } 
+  // defaultStartTime/endTime
   else if (car.defaultStartTime && car.defaultEndTime) {
     const start = parseInt(car.defaultStartTime.split(":")[0], 10);
     let end = parseInt(car.defaultEndTime.split(":")[0], 10);
@@ -277,8 +206,9 @@ const getAvailability = async (carId: string, dateString: string) => {
     for (let h = start; h < endHour; h++) {
       openHoursSet.add(h % 24);
     }
-  } else {
-    // if not available hours and default start time, end time than appears 24 hour slots
+  } 
+  // fallback 24 hour slots
+  else {
     for (let i = 0; i < 24; i++) openHoursSet.add(i);
   }
 
@@ -316,6 +246,46 @@ const generateBlockedResponse = (date: Date, reason: string) => ({
   })),
 });
 
+const createCarBlockedDatesToDB = async (
+  carId: string,
+  userId: string,
+  payload: IBlockedDate[]
+) => {
+  // Ensure host exists
+  const user = await User.findOne({ _id: userId, role: USER_ROLES.HOST }).select("_id");
+  if (!user) throw new ApiError(400, "No user found by this Id");
+
+  // Ensure car belongs to this host
+  const car = await Car.findOne({ _id: carId, userId }).select("blockedDates");
+  if (!car) throw new ApiError(404, "No car found by this ID");
+
+  // Merge old + new
+  const combined = [...(car.blockedDates || []), ...payload];
+
+  // Normalize & remove duplicates by date
+  const normalized = Array.from(
+    new Map(
+      combined.map(item => [
+        new Date(item.date).toISOString().split("T")[0], // unique key YYYY-MM-DD
+        { date: new Date(item.date), reason: item.reason || "" }
+      ])
+    ).values()
+  );
+
+  // Update DB
+  const result = await Car.findByIdAndUpdate(
+    carId,
+    { blockedDates: normalized },
+    { new: true }
+  );
+
+  if (!result) throw new ApiError(400, "Failed to update blocked dates");
+
+  return result;
+};
+
+
+
 export const CarServices = {
     createCarToDB,
     getAllCarsFromDB,
@@ -324,4 +294,5 @@ export const CarServices = {
     updateCarByIdToDB,
     deleteCarByIdFromDB,
     getAvailability,
+    createCarBlockedDatesToDB,
 }

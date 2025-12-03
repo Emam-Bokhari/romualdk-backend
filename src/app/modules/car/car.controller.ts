@@ -93,38 +93,56 @@ const deleteCarById = catchAsync(async (req, res) => {
 })
 
 const getAvailability = catchAsync(async (req, res) => {
-  const { carId } = req.params;
-  const { date } = req.query;
+    const { carId } = req.params;
+    const { date } = req.query;
 
-  // Validation
-  if (!carId) {
-    throw new ApiError(400, "Car ID is required");
-  }
+    // Validation
+    if (!carId) {
+        throw new ApiError(400, "Car ID is required");
+    }
 
-  if (!date || typeof date !== "string") {
-    throw new ApiError(
-      400,
-      "Date query parameter is required (e.g., ?date=2025-12-12)"
-    );
-  }
+    if (!date || typeof date !== "string") {
+        throw new ApiError(
+            400,
+            "Date query parameter is required (e.g., ?date=2025-12-12)"
+        );
+    }
 
-  // YYYY-MM-DD format check
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    throw new ApiError(400, "Invalid date format. Use YYYY-MM-DD");
-  }
+    // YYYY-MM-DD format check
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        throw new ApiError(400, "Invalid date format. Use YYYY-MM-DD");
+    }
 
-  const availability = await CarServices.getAvailability(carId, date);
+    const availability = await CarServices.getAvailability(carId, date);
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Car availability fetched successfully",
-    data: {
-      carId,
-      ...availability,
-    },
-  });
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Car availability fetched successfully",
+        data: {
+            carId,
+            ...availability,
+        },
+    });
 });
+
+const createCarBlockedDates = catchAsync(async (req, res) => {
+    const { carId } = req.params;
+
+    const { id: userId } = req.user;
+
+    const {blockedDates }= req.body;
+
+    const result = await CarServices.createCarBlockedDatesToDB(carId, userId, blockedDates);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: "Successfully blocked the car",
+        data: result,
+    })
+
+})
 
 export const CarControllers = {
     createCar,
@@ -133,5 +151,6 @@ export const CarControllers = {
     getCarById,
     updateCarById,
     deleteCarById,
-    getAvailability
+    getAvailability,
+    createCarBlockedDates,
 }

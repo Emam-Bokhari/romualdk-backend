@@ -31,8 +31,6 @@ export enum CAR_VERIFICATION_STATUS {
 export interface IBlockedDate {
   date: Date;
   reason?: string;
-  blockedBy: Types.ObjectId;
-  createdAt?: Date;
 }
 
 export interface ICar {

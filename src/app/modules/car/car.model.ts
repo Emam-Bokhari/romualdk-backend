@@ -5,8 +5,6 @@ const blockedDateSchema = new Schema<IBlockedDate>(
     {
         date: { type: Date, required: true },
         reason: { type: String },
-        blockedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-        createdAt: { type: Date, default: () => new Date() },
     },
     { _id: false }
 );
