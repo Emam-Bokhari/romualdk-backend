@@ -268,6 +268,7 @@ const getAllHosts = catchAsync(async (req, res) => {
 const getHostById = catchAsync(async (req, res) => {
 
   const { id } = req.params;
+  console.log(id,"ID")
   const result = await UserService.getHostByIdFromDB(id);
 
   sendResponse(res, {

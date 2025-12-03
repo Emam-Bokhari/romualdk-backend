@@ -49,9 +49,7 @@ const getSingleFavourite = catchAsync(async (req, res) => {
 
 const deleteFavourite = catchAsync(async (req, res) => {
     const { id } = req.user as { id: string };
-    const { referenceId } = req.params as {
-        referenceId: string;
-    };
+    const { referenceId } = req.params;
 
     const result = await FavouriteCarServices.deleteFavourite(id, referenceId);
 

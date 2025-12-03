@@ -26,7 +26,7 @@ const createCarToDB = async (userId: string, payload: ICar) => {
 
 // for feed 
 const getAllCarsFromDB = async () => {
-  const result = await Car.find({ verificationStatus: CAR_VERIFICATION_STATUS.APPROVED });
+  const result = await Car.find({ verificationStatus: CAR_VERIFICATION_STATUS.APPROVED }).populate({path:"userId",select:"firstName lastName fullName role profileImage"});
 
   if (!result || result.length === 0) {
     throw new ApiError(404, "No cars are found in the database")
@@ -39,7 +39,7 @@ const getAllCarsFromDB = async () => {
 const getAllCarsForVerificationsFromDB = async () => {
   const result = await Car.find({
     verificationStatus: { $in: [CAR_VERIFICATION_STATUS.PENDING, CAR_VERIFICATION_STATUS.REJECTED, CAR_VERIFICATION_STATUS.APPROVED] }
-  });
+  }).populate({path:"userId",select:"firstName lastName fullName role profileImage"});
 
   if (!result || result.length === 0) {
     throw new ApiError(404, "No cars are found in the database")
@@ -67,13 +67,13 @@ const updateCarVerificationStatusByIdToDB = async (carId: string, carVerificatio
 
 // for host role
 const getOwnCarsFromDB = async (userId: string) => {
-  const user = await User.findOne({ _id: userId, role: USER_ROLES.HOST, hostStatus: HOST_STATUS.APPROVED });
+  const user = await User.findOne({ _id: userId, role: USER_ROLES.HOST, hostStatus: HOST_STATUS.APPROVED })
 
   if (!user) {
     throw new ApiError(404, "No hosts are found by this ID")
   };
 
-  const result = await Car.find({ userId });
+  const result = await Car.find({ userId }).populate({path:"userId",select:"firstName lastName fullName role profileImage"});
 
   if (!result || result.length === 0) {
     return []
@@ -84,7 +84,7 @@ const getOwnCarsFromDB = async (userId: string) => {
 }
 
 const getCarByIdFromDB = async (id: string) => {
-  const result = await Car.findById(id);
+  const result = await Car.findById(id).populate({path:"userId",select:"firstName lastName fullName role profileImage"});
 
   if (!result) {
     return {}

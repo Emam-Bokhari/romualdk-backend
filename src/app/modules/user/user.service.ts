@@ -366,7 +366,7 @@ const getAllHostsFromDB = async (query: any) => {
 }
 
 const getHostByIdFromDB = async (id: string) => {
-    const result = await User.findOne({ _id: id, hostStatus: HOST_STATUS.APPROVED, role: USER_ROLES.USER });
+    const result = await User.findOne({ _id: id, hostStatus: HOST_STATUS.APPROVED });
 
     if (!result) throw new ApiError(404, "No host is found in the database by this ID");
 

@@ -37,41 +37,13 @@ const getFavourite = async (userId: string) => {
     const favourites = await FavouriteCar.find({ userId })
         .populate({
             path: "referenceId",
-            populate: [
-                { path: "user", select: "firstName lastName role email profileImage" },
-                { path: "category", select: "name" },
-            ],
-        })
+        }).populate({path:"userId",select:"_id firstName lastName role profileImage"})
         .lean();
 
-    const result = favourites.map((favourite: any) => {
-        const car = favourite.referenceId;
-
-        return {
-            favouriteId: favourite._id,
-            isFavourite: true, 
-            car: {
-                _id: car?._id,
-                title: car?.title,
-                images: car?.images,
-                pricePerDay: car?.pricePerDay,
-                location: car?.location,
-                year: car?.year,
-                brand: car?.brand,
-                userId: car?.userId
-                    ? {
-                          _id: car.userId._id,
-                          name: car.userId.name,
-                          profileImage: car.userId.profileImage,
-                      }
-                    : null,
-                category: car?.category,
-            }
-        };
-    });
+   
 
 
-    return result;
+    return favourites;
 };
 
 const getSingleFavourite = async (userId: string, favouriteId: string) => {
@@ -81,10 +53,6 @@ const getSingleFavourite = async (userId: string, favouriteId: string) => {
     })
         .populate({
             path: "referenceId",
-            populate: [
-                { path: "user", select: "firstName lastName role email profileImage" },
-                { path: "category", select: "name" },
-            ],
         })
         .lean();
 
@@ -92,31 +60,8 @@ const getSingleFavourite = async (userId: string, favouriteId: string) => {
         throw new ApiError(StatusCodes.NOT_FOUND, "Favourite not found");
     }
 
-    const car = favourite.referenceId as any;
-
-    return {
-        favouriteId: favourite._id,
-        isFavourite: true,
-        car: {
-            _id: car._id,
-            title: car.title,
-            images: car.images,
-            pricePerDay: car.pricePerDay,
-            location: car.location,
-            year: car.year,
-            brand: car.brand,
-            model: car.model,
-            description: car.description,
-            userId: car.userId
-                ? {
-                      _id: car.userId._id,
-                      name: car.userId.name,
-                      profileImage: car.userId.profileImage,
-                  }
-                : null,
-            category: car.category,
-        },
-    };
+  return favourite;
+    
 };
 
 const deleteFavourite = async (userId: string, referenceId: string) => {

@@ -12,7 +12,7 @@ const favouriteCarSchema = new Schema<TFavouriteCar>(
         referenceId: {
             type: Schema.Types.ObjectId,
             required: true,
-            ref: "Event",
+            ref: "Car",
         },
     },
     {
