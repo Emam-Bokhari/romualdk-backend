@@ -27,7 +27,7 @@ const mediaSchema = new Schema<IMedia>(
 
         description: {
             type: String,
-            default: null,
+            default: "",
         },
     },
     {

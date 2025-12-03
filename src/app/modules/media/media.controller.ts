@@ -16,6 +16,35 @@ const createMedia = catchAsync(async (req, res) => {
 
 })
 
-export const MediaControllers={
+const getMediaByType = catchAsync(async (req, res) => {
+    const { type } = req.query
+    console.log(type, "Type")
+    const result = await MediaServices.getMediaByTypeFromDB(type);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: "Successfully get media by types",
+        data: result,
+    })
+})
+
+const updateMediaById = catchAsync(async (req, res) => {
+    const { mediaId } = req.params;
+    const updatedData = req.body;
+    const result = await MediaServices.updateMediaByIdToDB(mediaId, updatedData);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: "Successfully updated media by ID",
+        data: result,
+    })
+
+})
+
+export const MediaControllers = {
     createMedia,
+    getMediaByType,
+    updateMediaById,
 }

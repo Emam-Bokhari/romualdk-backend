@@ -13,7 +13,7 @@ const createMediaToDB = async (payload: IMedia) => {
     if (description) {
         const exist = await Media.findOne({
             type,
-            description: { $ne: null },
+            description: { $ne: "" },
         });
 
         if (exist) {
@@ -37,7 +37,70 @@ const createMediaToDB = async (payload: IMedia) => {
     }
 }
 
+const getMediaByTypeFromDB = async (type: any) => {
+
+
+    console.log(type)
+
+    if (![MEDIA_TYPE.BANNER, MEDIA_TYPE.FEED].includes(type)) {
+        throw new ApiError(400, "Media type must be 'BANNER' or 'FEED'");
+    }
+
+
+    const mediaList = await Media.find({ type });
+
+    if (!mediaList || mediaList.length === 0) {
+        return []
+    }
+
+    return mediaList;
+};
+
+const updateMediaByIdToDB = async (
+    mediaId: string,
+    payload: Partial<IMedia>
+): Promise<IMedia> => {
+
+    if (payload.type && ![MEDIA_TYPE.BANNER, MEDIA_TYPE.FEED].includes(payload.type)) {
+        throw new ApiError(400, "Media type must be 'BANNER' or 'FEED'");
+    }
+
+
+    if (payload.description !== undefined) {
+        if (payload.description.trim() === "") {
+            payload.description = "";
+        } else {
+            // uniqueness check
+            const exist = await Media.findOne({
+                _id: { $ne: mediaId },
+                type: payload.type || undefined,
+                description: { $ne: "" },
+            });
+            if (exist) {
+                throw new ApiError(
+                    400,
+                    `A description already exists for media type: ${payload.type}`
+                );
+            }
+        }
+    }
+
+    const updatedMedia = await Media.findByIdAndUpdate(
+        mediaId,
+        { $set: payload },
+        { new: true }
+    );
+
+    if (!updatedMedia) {
+        throw new ApiError(404, "Media not found");
+    }
+
+    return updatedMedia;
+};
+
 
 export const MediaServices = {
-    createMediaToDB
+    createMediaToDB,
+    getMediaByTypeFromDB,
+    updateMediaByIdToDB,
 }
