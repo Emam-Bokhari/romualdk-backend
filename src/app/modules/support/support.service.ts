@@ -24,31 +24,47 @@ const support = async (id: string, payload: TSupport) => {
         to: config.support_receiver_email || "support@yourdomain.com", // Admin email
         subject: `Support Request: ${payload.subject}`,
         html: `
-  <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05)">
-    <div style="background-color:#1a1c1e;padding:20px;color:white;text-align:center">
-      <h2 style="margin:0;font-size:24px">FomoGigs - Support Request</h2>
+  <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;
+  border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;
+  background-color:#fefefe;box-shadow:0 4px 10px rgba(0,0,0,0.05)">
+    
+    <div style="background-color:#009e99;padding:20px;color:white;text-align:center">
+      <h2 style="margin:0;font-size:24px;font-weight:600">GO CONNECTE - Support Request</h2>
     </div>
+
     <div style="padding:20px;background-color:#ffffff">
       <p style="font-size:16px;margin-bottom:10px;"><strong>Requester Name:</strong> ${user.fullName}</p>
       <p style="font-size:16px;margin-bottom:10px;"><strong>Requester Email:</strong> ${payload.email}</p>
       <p style="font-size:16px;margin-bottom:10px;"><strong>Subject:</strong> ${payload.subject}</p>
+
       <div style="margin-top:20px">
         <p style="font-size:16px;margin-bottom:5px;"><strong>Message:</strong></p>
-        <div style="background-color:#f9f9f9;padding:15px;border-left:4px solid #1a1c1e;border-radius:4px;font-size:15px;line-height:1.6">
+        <div style="background-color:#fefefe;padding:15px;border-left:4px solid #009e99;
+        border-radius:4px;font-size:15px;line-height:1.6">
           ${payload.message}
         </div>
       </div>
+
       <div style="text-align:center;margin-top:30px">
-        <a href="mailto:${payload.email}" style="background-color:#1a1c1e;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-size:16px;display:inline-block">
+        <a 
+          href="mailto:${payload.email}" 
+          style="background-color:#009e99;color:#ffffff;
+          padding:12px 20px;border-radius:6px;text-decoration:none;font-size:16px;
+          display:inline-block;font-weight:600"
+        >
           Reply to ${user.fullName}
         </a>
       </div>
     </div>
-    <div style="background-color:#f2f2f2;padding:15px;text-align:center;font-size:12px;color:#888;">
-      © ${new Date().getFullYear()} FomoGigs. All rights reserved.
+
+    <div style="background-color:#fefefe;padding:15px;text-align:center;
+    font-size:12px;color:#666;">
+      © ${new Date().getFullYear()} GO CONNECTE. All rights reserved.
     </div>
+
   </div>
 `,
+
     };
 
     await emailHelper.sendEmail(emailPayload);
@@ -81,7 +97,7 @@ const getAllSupportsFromDB = async (query: any) => {
 };
 
 const getSupportByIdFromDB = async (id: string) => {
-    const support = await Support.findById(id).populate({path:"userId",select:"firstName lastName role profileImage email _id phone"});
+    const support = await Support.findById(id).populate({ path: "userId", select: "firstName lastName role profileImage email _id phone" });
 
     if (!support) {
         throw new ApiError(404, "No support is found by this ID");
