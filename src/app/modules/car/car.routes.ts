@@ -18,7 +18,7 @@ router.route("/")
             { fieldName: "images", forceMultiple: true },
         ),
         CarControllers.createCar)
-    .get(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), CarControllers.getAllCars)
+    .get(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.HOST, USER_ROLES.USER), CarControllers.getAllCars)
 
 
 router.get("/my", auth(USER_ROLES.HOST), CarControllers.getOwnCars);

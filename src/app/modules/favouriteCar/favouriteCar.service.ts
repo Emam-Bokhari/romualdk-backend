@@ -66,10 +66,10 @@ const deleteFavourite = async (userId: string, referenceId: string) => {
     const result = await FavouriteCar.deleteOne({ userId, referenceId });
 
     if (!result.deletedCount) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "Bookmark not found");
+        throw new ApiError(StatusCodes.NOT_FOUND, "Favourite not found");
     }
 
-    return { message: "Bookmark removed successfully" };
+    return { message: "Favourite removed successfully" };
 };
 
 export const FavouriteCarServices = {

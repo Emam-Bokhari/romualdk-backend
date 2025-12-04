@@ -20,7 +20,11 @@ const createCar = catchAsync(async (req, res) => {
 })
 
 const getAllCars = catchAsync(async (req, res) => {
-    const result = await CarServices.getAllCarsFromDB(req.query);
+
+    const { id: userId } = req.user;
+
+    const result = await CarServices.getAllCarsFromDB(req.query, userId);
+
 
     sendResponse(res, {
         success: true,
@@ -61,7 +65,9 @@ const getCarById = catchAsync(async (req, res) => {
 
     const { id } = req.params;
 
-    const result = await CarServices.getCarByIdFromDB(id);
+    const { id: userId } = req.user;
+
+    const result = await CarServices.getCarByIdFromDB(id, userId);
     sendResponse(res, {
         success: true,
         statusCode: 200,

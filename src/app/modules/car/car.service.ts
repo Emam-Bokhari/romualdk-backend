@@ -5,6 +5,7 @@ import { User } from "../user/user.model"
 import { AVAILABLE_DAYS, CAR_VERIFICATION_STATUS, IBlockedDate, ICar } from "./car.interface";
 import { Car } from "./car.model";
 import QueryBuilder from "../../builder/queryBuilder";
+import { FavouriteCar } from "../favouriteCar/favouriteCar.model";
 
 const createCarToDB = async (userId: string, payload: ICar) => {
   const user = await User.findOne({ _id: userId, hostStatus: HOST_STATUS.APPROVED, role: USER_ROLES.HOST });
@@ -28,9 +29,10 @@ const createCarToDB = async (userId: string, payload: ICar) => {
 
 
 // for feed 
-const getAllCarsFromDB = async (query: any) => {
+const getAllCarsFromDB = async (query: any, userId: string) => {
 
   const baseQuery = Car.find({ verificationStatus: CAR_VERIFICATION_STATUS.APPROVED }).populate({ path: "userId", select: "firstName lastName fullName role profileImage" });
+
 
   const queryBuilder = new QueryBuilder(baseQuery, query)
     .search(["brand", "model", "transmission", "color", "city", "licensePlate"])
@@ -39,7 +41,24 @@ const getAllCarsFromDB = async (query: any) => {
     .filter()
     .paginate();
 
+
   const cars = await queryBuilder.modelQuery;
+
+  const carsWithBookmark = await Promise.all(
+    cars.map(async (car: any) => {
+      const isBookmarked = await FavouriteCar.exists({
+        userId,
+        referenceId: car._id,
+      });
+
+      return {
+        ...car.toObject(),
+        isFavourite: Boolean(isBookmarked),
+      };
+    })
+  );
+
+
 
   const meta = await queryBuilder.countTotal();
 
@@ -48,7 +67,7 @@ const getAllCarsFromDB = async (query: any) => {
   };
 
   return {
-    data: cars,
+    data: carsWithBookmark,
     meta,
   }
 }
@@ -56,7 +75,7 @@ const getAllCarsFromDB = async (query: any) => {
 // for verifications, dashboard
 const getAllCarsForVerificationsFromDB = async (query: any) => {
 
-  const baseQuery =  Car.find({
+  const baseQuery = Car.find({
     verificationStatus: { $in: [CAR_VERIFICATION_STATUS.PENDING, CAR_VERIFICATION_STATUS.REJECTED, CAR_VERIFICATION_STATUS.APPROVED] }
   }).populate({ path: "userId", select: "firstName lastName fullName role profileImage" });
 
@@ -67,7 +86,7 @@ const getAllCarsForVerificationsFromDB = async (query: any) => {
     .filter()
     .paginate();
 
-    const cars = await queryBuilder.modelQuery;
+  const cars = await queryBuilder.modelQuery;
 
   const meta = await queryBuilder.countTotal();
 
@@ -109,22 +128,44 @@ const getOwnCarsFromDB = async (userId: string) => {
 
   const result = await Car.find({ userId }).populate({ path: "userId", select: "firstName lastName fullName role profileImage" });
 
+  const carsWithBookmark = await Promise.all(
+    result.map(async (car: any) => {
+      const isBookmarked = await FavouriteCar.exists({
+        userId,
+        referenceId: car._id,
+      });
+
+      return {
+        ...car.toObject(),
+        isFavourite: Boolean(isBookmarked),
+      };
+    })
+  );
+
   if (!result || result.length === 0) {
     return []
   };
 
-  return result;
+  return carsWithBookmark;
 
 }
 
-const getCarByIdFromDB = async (id: string) => {
+const getCarByIdFromDB = async (id: string, userId: string) => {
   const result = await Car.findById(id).populate({ path: "userId", select: "firstName lastName fullName role profileImage" });
+
+  const isBookmarked = await FavouriteCar.exists({
+    userId,
+    referenceId: id,
+  });
 
   if (!result) {
     return {}
   };
 
-  return result;
+  return {
+    ...result.toObject(),
+    isFavourite: Boolean(isBookmarked),
+  };;
 
 }
 
