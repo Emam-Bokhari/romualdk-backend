@@ -177,6 +177,23 @@ const updateCarVerificationStatusById = catchAsync(async (req, res) => {
 
 })
 
+
+const getSuggestedCars = catchAsync(async (req, res) => {
+    const { id: userId } = req.user;
+
+    const limit = parseInt(req.query.limit as string) || 10;
+
+
+    const cars = await CarServices.getSuggestedCarsFromDB(userId, limit);
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Suggested cars fetched successfully",
+        data: cars,
+    });
+});
+
 export const CarControllers = {
     createCar,
     getAllCars,
@@ -188,4 +205,5 @@ export const CarControllers = {
     createCarBlockedDates,
     getAllCarsForVerifications,
     updateCarVerificationStatusById,
+    getSuggestedCars,
 }

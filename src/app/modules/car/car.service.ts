@@ -412,6 +412,116 @@ const createCarBlockedDatesToDB = async (
 };
 
 
+const getSuggestedCarsFromDB = async (
+  userId: string,
+  limit: number = 10
+) => {
+  const user = await User.findById(userId).select("location").lean();
+
+  let userLocation: [number, number] | undefined;
+  if (
+    user?.location?.coordinates &&
+    Array.isArray(user.location.coordinates) &&
+    user.location.coordinates.length === 2
+  ) {
+    const [lng, lat] = user.location.coordinates;
+    if (lng !== 0 && lat !== 0) {
+      userLocation = [lng, lat];
+    }
+  }
+
+  const defaultLocation: [number, number] = [90.4074, 23.8103];
+  const location = userLocation || defaultLocation;
+
+  const maxDistance = 50000; // 50 km
+
+  const cars = await Car.aggregate([
+    {
+      $geoNear: {
+        near: { type: "Point", coordinates: location },
+        distanceField: "distance",
+        maxDistance,
+        spherical: true,
+        query: {
+          isActive: true,
+          verificationStatus: CAR_VERIFICATION_STATUS.APPROVED,
+        },
+      },
+    },
+    {
+      $addFields: {
+        distanceInKm: { $round: [{ $divide: ["$distance", 1000] }, 1] },
+        ratingScore: {
+          $cond: [
+            { $gt: ["$totalReviews", 0] },
+            { $divide: ["$averageRating", 5] },
+            0.6,
+          ],
+        },
+        proximityScore: {
+          $divide: [1, { $add: [1, { $divide: ["$distance", 10000] }] }],
+        },
+      },
+    },
+    {
+      $addFields: {
+        recommendationScore: {
+          $add: [
+            { $multiply: ["$ratingScore", 0.6] },
+            { $multiply: ["$proximityScore", 0.4] },
+          ],
+        },
+      },
+    },
+    { $sort: { recommendationScore: -1 } },
+    { $limit: limit + 5 },
+
+    // Populate userId
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "userInfo",
+      },
+    },
+    { $unwind: "$userInfo" },
+
+    // Replace userId with only firstName and lastName
+    {
+      $addFields: {
+        userId: {
+          _id: "$userInfo._id",
+          firstName: "$userInfo.firstName",
+          lastName: "$userInfo.lastName",
+          email: "$userInfo.email",
+          phone: "$userInfo.phone",
+          role: "$userInfo.role",
+          profileImage: "$userInfo.profileImage"
+        },
+      },
+    },
+
+    // Remove temporary fields
+    {
+      $project: {
+        distance: 0,
+        userInfo: 0,
+        ratingScore: 0,
+        proximityScore: 0,
+        recommendationScore: 0
+      },
+    },
+
+    { $limit: limit },
+  ]);
+
+  return cars;
+};
+
+
+
+
 export const CarServices = {
   createCarToDB,
   getAllCarsFromDB,
@@ -423,4 +533,5 @@ export const CarServices = {
   createCarBlockedDatesToDB,
   getAllCarsForVerificationsFromDB,
   updateCarVerificationStatusByIdToDB,
+  getSuggestedCarsFromDB,
 }

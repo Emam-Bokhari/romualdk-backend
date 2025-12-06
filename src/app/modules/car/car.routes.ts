@@ -23,6 +23,8 @@ router.route("/")
 
 router.get("/my", auth(USER_ROLES.HOST), CarControllers.getOwnCars);
 
+router.get("/suggested", auth(USER_ROLES.USER), CarControllers.getSuggestedCars);
+
 router.get("/availability/:carId", CarControllers.getAvailability)
 
 router.patch("/blocked/:carId", auth(USER_ROLES.HOST), CarControllers.createCarBlockedDates);
