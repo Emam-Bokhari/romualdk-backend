@@ -44,7 +44,7 @@ const messageSchema = new Schema<IMessage, MessageModel>(
     },
     pinnedAt: {
       type: Date,
-    }
+    },
   },
   {
     timestamps: true,

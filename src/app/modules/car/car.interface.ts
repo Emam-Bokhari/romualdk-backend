@@ -1,31 +1,31 @@
 import { Types } from "mongoose";
 
 export enum AVAILABLE_DAYS {
-  SATURDAY = 'SATURDAY',
-  SUNDAY = 'SUNDAY',
-  MONDAY = 'MONDAY',
-  TUESDAY = 'TUESDAY',
-  WEDNESDAY = 'WEDNESDAY',
-  THURSDAY = 'THURSDAY',
-  FRIDAY = 'FRIDAY',
+  SATURDAY = "SATURDAY",
+  SUNDAY = "SUNDAY",
+  MONDAY = "MONDAY",
+  TUESDAY = "TUESDAY",
+  WEDNESDAY = "WEDNESDAY",
+  THURSDAY = "THURSDAY",
+  FRIDAY = "FRIDAY",
 }
 
 export enum FUEL_TYPE {
   PETROL = "PETROL",
   DISEL = "DISEL",
   ELECTRIC = "ELECTRIC",
-  HYBRID = "HYBRID"
+  HYBRID = "HYBRID",
 }
 
 export enum TRANSMISSION {
   MANUAL = "MANUAL",
-  AUTOMATIC = "AUTOMATIC"
+  AUTOMATIC = "AUTOMATIC",
 }
 
 export enum CAR_VERIFICATION_STATUS {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
-  REJECTED = "REJECTED"
+  REJECTED = "REJECTED",
 }
 
 export interface IBlockedDate {
@@ -64,6 +64,6 @@ export interface ICar {
   facilities: string[];
   blockedDates?: IBlockedDate[];
   defaultStartTime?: string; // e.g., "09:00"
-  defaultEndTime?: string;   // e.g., "21:00"
+  defaultEndTime?: string; // e.g., "21:00"
   isActive: boolean;
 }

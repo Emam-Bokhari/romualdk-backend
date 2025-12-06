@@ -23,7 +23,7 @@ router.post(
 
 router.get(
   "/:chatId",
- auth(
+  auth(
     USER_ROLES.USER,
     USER_ROLES.HOST,
     USER_ROLES.SUPER_ADMIN,
@@ -31,7 +31,6 @@ router.get(
   ),
   MessageController.getMessages,
 );
-
 
 router.delete(
   "/delete/:messageId",

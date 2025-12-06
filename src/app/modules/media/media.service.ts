@@ -4,44 +4,43 @@ import { IMedia, MEDIA_TYPE } from "./media.interface";
 import { Media } from "./media.model";
 
 const createMediaToDB = async (payload: IMedia) => {
-    const { type, description } = payload;
+  const { type, description } = payload;
 
-    if (![MEDIA_TYPE.BANNER, MEDIA_TYPE.FEED].includes(payload.type)) {
-        throw new ApiError(400, "Media type must be 'BANNER' or 'FEED'");
-    };
+  if (![MEDIA_TYPE.BANNER, MEDIA_TYPE.FEED].includes(payload.type)) {
+    throw new ApiError(400, "Media type must be 'BANNER' or 'FEED'");
+  }
 
-    // if description is provided, ensure this type doesn't already have one
-    if (description) {
-        const exist = await Media.findOne({
-            type,
-            description: { $ne: "" },
-        });
+  // if description is provided, ensure this type doesn't already have one
+  if (description) {
+    const exist = await Media.findOne({
+      type,
+      description: { $ne: "" },
+    });
 
-        if (exist) {
-            throw new ApiError(
-                400,
-                `A description already exists for media type: ${type}`
-            );
-        }
+    if (exist) {
+      throw new ApiError(
+        400,
+        `A description already exists for media type: ${type}`,
+      );
     }
+  }
 
-    // switch is used to allow future type-specific logic
-    switch (type) {
-        case MEDIA_TYPE.BANNER:
-            return await Media.create({ ...payload });
+  // switch is used to allow future type-specific logic
+  switch (type) {
+    case MEDIA_TYPE.BANNER:
+      return await Media.create({ ...payload });
 
-        case MEDIA_TYPE.FEED:
-            return await Media.create({ ...payload });
+    case MEDIA_TYPE.FEED:
+      return await Media.create({ ...payload });
 
-        default:
-            throw new ApiError(400, "Invalid media type");
-    }
-}
+    default:
+      throw new ApiError(400, "Invalid media type");
+  }
+};
 
-
- const getMediaByTypeFromDB = async (
+const getMediaByTypeFromDB = async (
   type: any,
-  includeInactive: boolean = false
+  includeInactive: boolean = false,
 ) => {
   if (![MEDIA_TYPE.BANNER, MEDIA_TYPE.FEED].includes(type)) {
     throw new ApiError(400, "Media type must be 'BANNER' or 'FEED'");
@@ -58,47 +57,47 @@ const createMediaToDB = async (payload: IMedia) => {
   return mediaList || [];
 };
 
-
 const updateMediaByIdToDB = async (
-    mediaId: string,
-    payload: Partial<IMedia>
+  mediaId: string,
+  payload: Partial<IMedia>,
 ): Promise<IMedia> => {
+  if (
+    payload.type &&
+    ![MEDIA_TYPE.BANNER, MEDIA_TYPE.FEED].includes(payload.type)
+  ) {
+    throw new ApiError(400, "Media type must be 'BANNER' or 'FEED'");
+  }
 
-    if (payload.type && ![MEDIA_TYPE.BANNER, MEDIA_TYPE.FEED].includes(payload.type)) {
-        throw new ApiError(400, "Media type must be 'BANNER' or 'FEED'");
+  if (payload.description !== undefined) {
+    if (payload.description.trim() === "") {
+      payload.description = "";
+    } else {
+      // uniqueness check
+      const exist = await Media.findOne({
+        _id: { $ne: mediaId },
+        type: payload.type || undefined,
+        description: { $ne: "" },
+      });
+      if (exist) {
+        throw new ApiError(
+          400,
+          `A description already exists for media type: ${payload.type}`,
+        );
+      }
     }
+  }
 
+  const updatedMedia = await Media.findByIdAndUpdate(
+    mediaId,
+    { $set: payload },
+    { new: true },
+  );
 
-    if (payload.description !== undefined) {
-        if (payload.description.trim() === "") {
-            payload.description = "";
-        } else {
-            // uniqueness check
-            const exist = await Media.findOne({
-                _id: { $ne: mediaId },
-                type: payload.type || undefined,
-                description: { $ne: "" },
-            });
-            if (exist) {
-                throw new ApiError(
-                    400,
-                    `A description already exists for media type: ${payload.type}`
-                );
-            }
-        }
-    }
+  if (!updatedMedia) {
+    throw new ApiError(404, "Media not found");
+  }
 
-    const updatedMedia = await Media.findByIdAndUpdate(
-        mediaId,
-        { $set: payload },
-        { new: true }
-    );
-
-    if (!updatedMedia) {
-        throw new ApiError(404, "Media not found");
-    }
-
-    return updatedMedia;
+  return updatedMedia;
 };
 
 const updateMediaStatusByIdToDB = async (id: string, status: boolean) => {
@@ -129,11 +128,10 @@ const deleteMediaByIdToDB = async (id: string) => {
   return result;
 };
 
-
 export const MediaServices = {
-    createMediaToDB,
-    getMediaByTypeFromDB,
-    updateMediaByIdToDB,
-    updateMediaStatusByIdToDB,
-    deleteMediaByIdToDB,
-}
+  createMediaToDB,
+  getMediaByTypeFromDB,
+  updateMediaByIdToDB,
+  updateMediaStatusByIdToDB,
+  deleteMediaByIdToDB,
+};

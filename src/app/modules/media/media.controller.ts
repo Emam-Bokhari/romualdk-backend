@@ -3,18 +3,17 @@ import sendResponse from "../../../shared/sendResponse";
 import { MediaServices } from "./media.service";
 
 const createMedia = catchAsync(async (req, res) => {
-    const mediaData = req.body;
+  const mediaData = req.body;
 
-    const result = await MediaServices.createMediaToDB(mediaData);
+  const result = await MediaServices.createMediaToDB(mediaData);
 
-    sendResponse(res, {
-        success: true,
-        statusCode: 200,
-        message: "Successfully create a media data",
-        data: result,
-    })
-
-})
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Successfully create a media data",
+    data: result,
+  });
+});
 
 const getMediaByType = catchAsync(async (req, res) => {
   const { type, includeInactive } = req.query;
@@ -26,7 +25,7 @@ const getMediaByType = catchAsync(async (req, res) => {
 
   const result = await MediaServices.getMediaByTypeFromDB(
     type,
-    includeInactiveBool
+    includeInactiveBool,
   );
 
   sendResponse(res, {
@@ -37,49 +36,47 @@ const getMediaByType = catchAsync(async (req, res) => {
   });
 });
 
-
 const updateMediaById = catchAsync(async (req, res) => {
-    const { mediaId } = req.params;
-    const updatedData = req.body;
-    const result = await MediaServices.updateMediaByIdToDB(mediaId, updatedData);
+  const { mediaId } = req.params;
+  const updatedData = req.body;
+  const result = await MediaServices.updateMediaByIdToDB(mediaId, updatedData);
 
-    sendResponse(res, {
-        success: true,
-        statusCode: 200,
-        message: "Successfully updated media by ID",
-        data: result,
-    })
-
-})
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Successfully updated media by ID",
+    data: result,
+  });
+});
 
 const updateMediaStatus = catchAsync(async (req, res) => {
-    const { mediaId } = req.params;
-    const { status } = req.body;
-    const result = await MediaServices.updateMediaStatusByIdToDB(mediaId, status);
-    sendResponse(res, {
-        success: true,
-        statusCode: 200,
-        message: "Media status updated successfully",
-        data: result,
-    });
+  const { mediaId } = req.params;
+  const { status } = req.body;
+  const result = await MediaServices.updateMediaStatusByIdToDB(mediaId, status);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Media status updated successfully",
+    data: result,
+  });
 });
 
 const deleteMedia = catchAsync(async (req, res) => {
-    const { mediaId } = req.params;
-    const result = await MediaServices.deleteMediaByIdToDB(mediaId);
+  const { mediaId } = req.params;
+  const result = await MediaServices.deleteMediaByIdToDB(mediaId);
 
-    sendResponse(res, {
-        statusCode: 200,
-        success: true,
-        message: "Media deleted successfully",
-        data: result,
-    });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Media deleted successfully",
+    data: result,
+  });
 });
 
 export const MediaControllers = {
-    createMedia,
-    getMediaByType,
-    updateMediaById,
-    updateMediaStatus,
-    deleteMedia,
-}
+  createMedia,
+  getMediaByType,
+  updateMediaById,
+  updateMediaStatus,
+  deleteMedia,
+};

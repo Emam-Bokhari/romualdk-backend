@@ -1,17 +1,19 @@
-import { StatusCodes } from 'http-status-codes';
-import { Rule } from './rule.model';
-import { RULE_TYPE } from './rule.interface';
-import ApiError from '../../../errors/ApiErrors';
+import { StatusCodes } from "http-status-codes";
+import { Rule } from "./rule.model";
+import { RULE_TYPE } from "./rule.interface";
+import ApiError from "../../../errors/ApiErrors";
 
 const upsertRule = async (type: RULE_TYPE, content: string) => {
   const result = await Rule.findOneAndUpdate(
     { type },
     { content, type },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
+    { upsert: true, new: true, setDefaultsOnInsert: true },
   );
 
-  const isNew = result.isNew ?? true; 
-  const message = isNew ? `${type} created successfully` : `${type} updated successfully`;
+  const isNew = result.isNew ?? true;
+  const message = isNew
+    ? `${type} created successfully`
+    : `${type} updated successfully`;
 
   return { message, result };
 };
@@ -28,7 +30,7 @@ const updateRule = async (type: RULE_TYPE, content: string) => {
   const result = await Rule.findOneAndUpdate(
     { type },
     { content },
-    { new: true }
+    { new: true },
   );
 
   if (!result) {
@@ -37,7 +39,6 @@ const updateRule = async (type: RULE_TYPE, content: string) => {
 
   return { message: `${type} updated successfully`, result };
 };
-
 
 const deleteRule = async (type: RULE_TYPE) => {
   const result = await Rule.findOneAndDelete({ type });
@@ -48,8 +49,8 @@ const deleteRule = async (type: RULE_TYPE) => {
 };
 
 export const RuleServices = {
-  upsertRule,       
+  upsertRule,
   getRuleByType,
-  updateRule,       
+  updateRule,
   deleteRule,
 };

@@ -1,21 +1,20 @@
-import { model, Schema } from 'mongoose';
-import { TFaq } from './faq.interface';
-
+import { model, Schema } from "mongoose";
+import { TFaq } from "./faq.interface";
 
 const faqSchema = new Schema<TFaq>(
-    {
-        question: {
-            type: String,
-            required: true,
-        },
-        answer: {
-            type: String,
-            required: true,
-        },
+  {
+    question: {
+      type: String,
+      required: true,
     },
-    {
-        timestamps: true,
-        versionKey: false,
+    answer: {
+      type: String,
+      required: true,
     },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  },
 );
-export const Faq = model<TFaq>('Faq', faqSchema);
+export const Faq = model<TFaq>("Faq", faqSchema);

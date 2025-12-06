@@ -9,21 +9,20 @@ import { Support } from "./support.model";
 import QueryBuilder from "../../builder/queryBuilder";
 
 const support = async (id: string, payload: TSupport) => {
-    const user = await User.isExistUserById(id);
+  const user = await User.isExistUserById(id);
 
-    if (!user) {
-        throw new ApiError(404, "No user is found in the database");
-    }
+  if (!user) {
+    throw new ApiError(404, "No user is found in the database");
+  }
 
-    payload.userId = new Types.ObjectId(id);
+  payload.userId = new Types.ObjectId(id);
 
+  const supportEntry = await Support.create(payload);
 
-    const supportEntry = await Support.create(payload);
-
-    const emailPayload: ISendEmail = {
-        to: config.support_receiver_email || "support@yourdomain.com", // Admin email
-        subject: `Support Request: ${payload.subject}`,
-      html: `
+  const emailPayload: ISendEmail = {
+    to: config.support_receiver_email || "support@yourdomain.com", // Admin email
+    subject: `Support Request: ${payload.subject}`,
+    html: `
   <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;
   border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;
   background-color:#ffffff;box-shadow:0 4px 12px rgba(0,0,0,0.06)">
@@ -82,62 +81,66 @@ const support = async (id: string, payload: TSupport) => {
     </div>
 
   </div>
-`
+`,
+  };
 
+  await emailHelper.sendEmail(emailPayload);
 
-    };
-
-    await emailHelper.sendEmail(emailPayload);
-
-    return supportEntry;
+  return supportEntry;
 };
 
 const getAllSupportsFromDB = async (query: any) => {
-    const baseQuery = Support.find().populate({ path: "userId", select: "_id firstName lastName email phone role profileImage" });
+  const baseQuery = Support.find().populate({
+    path: "userId",
+    select: "_id firstName lastName email phone role profileImage",
+  });
 
-    const queryBuilder = new QueryBuilder(baseQuery, query)
-        .search(["name email subject userId"])
-        .sort()
-        .fields()
-        .filter()
-        .paginate();
+  const queryBuilder = new QueryBuilder(baseQuery, query)
+    .search(["name email subject userId"])
+    .sort()
+    .fields()
+    .filter()
+    .paginate();
 
-    const supports = await queryBuilder.modelQuery;
+  const supports = await queryBuilder.modelQuery;
 
-    const meta = await queryBuilder.countTotal();
+  const meta = await queryBuilder.countTotal();
 
-    if (!supports || supports.length === 0) {
-        throw new ApiError(404, "Supports data are not found in the database");
-    }
+  if (!supports || supports.length === 0) {
+    throw new ApiError(404, "Supports data are not found in the database");
+  }
 
-    return {
-        data: supports,
-        meta,
-    };
+  return {
+    data: supports,
+    meta,
+  };
 };
 
 const getSupportByIdFromDB = async (id: string) => {
-    const support = await Support.findById(id).populate({ path: "userId", select: "firstName lastName role profileImage email _id phone" });
+  const support = await Support.findById(id).populate({
+    path: "userId",
+    select: "firstName lastName role profileImage email _id phone",
+  });
 
-    if (!support) {
-        throw new ApiError(404, "No support is found by this ID");
-    }
+  if (!support) {
+    throw new ApiError(404, "No support is found by this ID");
+  }
 
-    return support;
+  return support;
 };
 
 const deleteSupportByIdFromDB = async (id: string) => {
-    const support = await Support.findByIdAndDelete(id);
-    if (!support) {
-        throw new ApiError(400, "Failed to delete this support by this ID");
-    }
+  const support = await Support.findByIdAndDelete(id);
+  if (!support) {
+    throw new ApiError(400, "Failed to delete this support by this ID");
+  }
 
-    return support;
+  return support;
 };
 
 export const SupportServices = {
-    support,
-    getAllSupportsFromDB,
-    getSupportByIdFromDB,
-    deleteSupportByIdFromDB,
+  support,
+  getAllSupportsFromDB,
+  getSupportByIdFromDB,
+  deleteSupportByIdFromDB,
 };

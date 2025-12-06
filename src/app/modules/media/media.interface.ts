@@ -1,6 +1,6 @@
 export enum MEDIA_TYPE {
   BANNER = "BANNER",
-  FEED = "FEED"
+  FEED = "FEED",
 }
 
 export interface IMedia extends Document {

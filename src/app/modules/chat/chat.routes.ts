@@ -5,60 +5,57 @@ import auth from "../../middlewares/auth";
 
 const router = Router();
 
-
 router.get(
   "/",
   auth(
     USER_ROLES.ADMIN,
     USER_ROLES.SUPER_ADMIN,
     USER_ROLES.USER,
-    USER_ROLES.HOST
+    USER_ROLES.HOST,
   ),
   ChatController.getChats,
 );
 
 router.get(
   "/:chatId/images",
-   auth(
+  auth(
     USER_ROLES.ADMIN,
     USER_ROLES.SUPER_ADMIN,
     USER_ROLES.USER,
-    USER_ROLES.HOST
+    USER_ROLES.HOST,
   ),
   ChatController.getChatImages,
 );
 
 router.post(
   "/create-chat",
-    auth(
+  auth(
     USER_ROLES.ADMIN,
     USER_ROLES.SUPER_ADMIN,
     USER_ROLES.USER,
-    USER_ROLES.HOST
+    USER_ROLES.HOST,
   ),
   ChatController.createChat,
 );
 
-
 router.patch(
   "/mark-chat-as-read/:id",
-   auth(
+  auth(
     USER_ROLES.ADMIN,
     USER_ROLES.SUPER_ADMIN,
     USER_ROLES.USER,
-    USER_ROLES.HOST
+    USER_ROLES.HOST,
   ),
   ChatController.markChatAsRead,
 );
 
-
 router.delete(
   "/delete/:chatId",
-   auth(
+  auth(
     USER_ROLES.ADMIN,
     USER_ROLES.SUPER_ADMIN,
     USER_ROLES.USER,
-    USER_ROLES.HOST
+    USER_ROLES.HOST,
   ),
   ChatController.deleteChat,
 );

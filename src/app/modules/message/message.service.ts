@@ -115,8 +115,6 @@ const sendMessageToDB = async (payload: IMessage): Promise<IMessage> => {
   return response;
 };
 
-
-
 const getMessagesFromDB = async (
   chatId: string,
   userId: string, // Add userId parameter
@@ -204,7 +202,6 @@ const getMessagesFromDB = async (
     },
   };
 };
-
 
 const deleteMessage = async (userId: string, messageId: string) => {
   try {

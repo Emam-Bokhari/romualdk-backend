@@ -1,20 +1,26 @@
-import { PipelineStage } from "mongoose"
-import { HOST_STATUS, STATUS, USER_ROLES } from "../../../enums/user"
-import { CAR_VERIFICATION_STATUS } from "../car/car.interface"
-import { Car } from "../car/car.model"
-import { User } from "../user/user.model"
+import { PipelineStage } from "mongoose";
+import { HOST_STATUS, STATUS, USER_ROLES } from "../../../enums/user";
+import { CAR_VERIFICATION_STATUS } from "../car/car.interface";
+import { Car } from "../car/car.model";
+import { User } from "../user/user.model";
 
 const statCountsFromDB = async () => {
-    const [users, cars] = await Promise.all([
-        await User.countDocuments({ verified: true, status: STATUS.ACTIVE, role: USER_ROLES.HOST || USER_ROLES.USER }),
-        await Car.countDocuments({ verificationStatus: CAR_VERIFICATION_STATUS.APPROVED })
-    ]);
+  const [users, cars] = await Promise.all([
+    await User.countDocuments({
+      verified: true,
+      status: STATUS.ACTIVE,
+      role: USER_ROLES.HOST || USER_ROLES.USER,
+    }),
+    await Car.countDocuments({
+      verificationStatus: CAR_VERIFICATION_STATUS.APPROVED,
+    }),
+  ]);
 
-    return {
-        users,
-        cars,
-    }
-}
+  return {
+    users,
+    cars,
+  };
+};
 
 const getGuestHostYearlyChart = async (year?: number) => {
   const currentYear = new Date().getUTCFullYear();
@@ -30,23 +36,23 @@ const getGuestHostYearlyChart = async (year?: number) => {
         $or: [
           {
             role: USER_ROLES.USER,
-            hostStatus: HOST_STATUS.NONE
+            hostStatus: HOST_STATUS.NONE,
           },
           {
             // role: USER_ROLES.HOST,
-            hostStatus: HOST_STATUS.APPROVED
-          }
-        ]
-      }
+            hostStatus: HOST_STATUS.APPROVED,
+          },
+        ],
+      },
     },
     {
       $group: {
         _id: {
           month: { $month: "$createdAt" },
-          role: "$role"
+          role: "$role",
         },
-        total: { $sum: 1 }
-      }
+        total: { $sum: 1 },
+      },
     },
     {
       $group: {
@@ -54,25 +60,26 @@ const getGuestHostYearlyChart = async (year?: number) => {
         data: {
           $push: {
             role: "$_id.role",
-            total: "$total"
-          }
-        }
-      }
+            total: "$total",
+          },
+        },
+      },
     },
     {
-      $sort: { _id: 1 as 1 }
-    }
+      $sort: { _id: 1 as 1 },
+    },
   ];
 
   const raw = await User.aggregate(pipeline);
 
   const chart = Array.from({ length: 12 }).map((_, i) => {
     const month = i + 1;
-    const row = raw.find(r => r._id === month);
+    const row = raw.find((r) => r._id === month);
 
     return {
       month,
-      guest: row?.data?.find((d: any) => d.role === USER_ROLES.USER)?.total || 0,
+      guest:
+        row?.data?.find((d: any) => d.role === USER_ROLES.USER)?.total || 0,
       host: row?.data?.find((d: any) => d.role === USER_ROLES.HOST)?.total || 0,
     };
   });
@@ -81,6 +88,6 @@ const getGuestHostYearlyChart = async (year?: number) => {
 };
 
 export const AnalyticsServices = {
-    statCountsFromDB,
-    getGuestHostYearlyChart
-}
+  statCountsFromDB,
+  getGuestHostYearlyChart,
+};

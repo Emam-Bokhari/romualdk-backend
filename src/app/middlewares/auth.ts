@@ -7,7 +7,6 @@ import ApiError from "../../errors/ApiErrors";
 import { verifyToken } from "../../util/verifyToken";
 import { STATUS } from "../../enums/user";
 
-
 const auth =
   (...roles: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {

@@ -7,170 +7,190 @@ import { StatusCodes } from "http-status-codes";
 import config from "../../../config";
 
 const userSchema = new Schema<IUser, UserModal>(
-    {
-        firstName: {
-            type: String,
-            // required: true,
-        },
-        lastName: {
-            type: String,
-            // required: true,
-        },
-        role: {
-            type: String,
-            enum: Object.values(USER_ROLES),
-            required: true,
-        },
-        hostStatus: {
-            type: String,
-            enum: Object.values(HOST_STATUS),
-            required: false,
-        },
-        phone: {
-            type: String,
-            // required: true,
-            // unique: true,
-        },
-        countryCode: {
-            type: String,
-            // required: true,
-        },
-        email: {
-            type: String,
-            required: false,
-            unique: false,
-            lowercase: true,
-        },
-        profileImage: {
-            type: String,
-            required: false,
-        },
-        nidFrontPic: {
-            type: String,
-            default: ""
-        },
-        nidBackPic: {
-            type: String,
-            default: ""
-        },
-        drivingLicenseFrontPic: {
-            type: String,
-            required: false,
-        },
-        drivingLicenseBackPic: {
-            type: String,
-            required: false,
-        },
-        password: {
-            type: String,
-            required: false,
-            select: 0,
-            minlength: 8,
-        },
-        dateOfBirth: {
-            type: String,
-            // required: true,
-        },
-        gender: {
-            type: String,
-            enum: Object.values(GENDER),
-            required: false,
-        },
-        status: {
-            type: String,
-            enum: Object.values(STATUS),
-            default: STATUS.ACTIVE,
-        },
-        verified: {
-            type: Boolean,
-            default: false,
-        },
-        location: {
-            type: {
-                type: String,
-                enum: ["Point"],
-                default: "Point",
-            },
-            coordinates: {
-                type: [Number],
-                default: [0, 0],
-                index: "2dsphere",
-            },
-        },
-        authentication: {
-            type: {
-                isResetPassword: {
-                    type: Boolean,
-                    default: false,
-                },
-                oneTimeCode: {
-                    type: Number,
-                    default: null,
-                },
-                expireAt: {
-                    type: Date,
-                    default: null,
-                },
-            },
-            select: 0,
-        },
+  {
+    firstName: {
+      type: String,
+      // required: true,
     },
-    {
-        timestamps: true,
-        versionKey: false,
-        toJSON: { virtuals: true, transform: (_doc, ret) => { delete ret.id; return ret; } },
-        toObject: { virtuals: true, transform: (_doc, ret) => { delete ret.id; return ret; } },
-    }
-)
+    lastName: {
+      type: String,
+      // required: true,
+    },
+    role: {
+      type: String,
+      enum: Object.values(USER_ROLES),
+      required: true,
+    },
+    hostStatus: {
+      type: String,
+      enum: Object.values(HOST_STATUS),
+      required: false,
+    },
+    phone: {
+      type: String,
+      // required: true,
+      // unique: true,
+    },
+    countryCode: {
+      type: String,
+      // required: true,
+    },
+    email: {
+      type: String,
+      required: false,
+      unique: false,
+      lowercase: true,
+    },
+    profileImage: {
+      type: String,
+      required: false,
+    },
+    nidFrontPic: {
+      type: String,
+      default: "",
+    },
+    nidBackPic: {
+      type: String,
+      default: "",
+    },
+    drivingLicenseFrontPic: {
+      type: String,
+      required: false,
+    },
+    drivingLicenseBackPic: {
+      type: String,
+      required: false,
+    },
+    password: {
+      type: String,
+      required: false,
+      select: 0,
+      minlength: 8,
+    },
+    dateOfBirth: {
+      type: String,
+      // required: true,
+    },
+    gender: {
+      type: String,
+      enum: Object.values(GENDER),
+      required: false,
+    },
+    status: {
+      type: String,
+      enum: Object.values(STATUS),
+      default: STATUS.ACTIVE,
+    },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+        index: "2dsphere",
+      },
+    },
+    authentication: {
+      type: {
+        isResetPassword: {
+          type: Boolean,
+          default: false,
+        },
+        oneTimeCode: {
+          type: Number,
+          default: null,
+        },
+        expireAt: {
+          type: Date,
+          default: null,
+        },
+      },
+      select: 0,
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: {
+      virtuals: true,
+      transform: (_doc, ret) => {
+        delete ret.id;
+        return ret;
+      },
+    },
+    toObject: {
+      virtuals: true,
+      transform: (_doc, ret) => {
+        delete ret.id;
+        return ret;
+      },
+    },
+  },
+);
 
 userSchema.virtual("fullName").get(function (this) {
-    return `${this.firstName} ${this.lastName}`
-})
-
+  return `${this.firstName} ${this.lastName}`;
+});
 
 //exist user check
 userSchema.statics.isExistUserById = async (id: string) => {
-    const isExist = await User.findById(id);
-    return isExist;
+  const isExist = await User.findById(id);
+  return isExist;
 };
 
 userSchema.statics.isExistUserByEmail = async (email: string) => {
-    const isExist = await User.findOne({ email });
-    return isExist;
+  const isExist = await User.findOne({ email });
+  return isExist;
 };
 
 //account check
 userSchema.statics.isAccountCreated = async (id: string) => {
-    const isUserExist: any = await User.findById(id);
-    return isUserExist.accountInformation.status;
+  const isUserExist: any = await User.findById(id);
+  return isUserExist.accountInformation.status;
 };
 
 //is match password
-userSchema.statics.isMatchPassword = async (password: string, hashPassword: string): Promise<boolean> => {
-    return await bcrypt.compare(password, hashPassword);
+userSchema.statics.isMatchPassword = async (
+  password: string,
+  hashPassword: string,
+): Promise<boolean> => {
+  return await bcrypt.compare(password, hashPassword);
 };
 
 //check user
-userSchema.pre('save', async function (next) {
-
-    if (this.isNew) {
-        const isExist = await User.findOne({ phone: this.phone });
-        if (isExist) {
-            throw new ApiError(StatusCodes.BAD_REQUEST, 'Phone number already exist!');
-        }
-
-        // password hash
-        if (this.password) {
-            this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_rounds));
-        }
-    } else {
-
-        if (this.isModified('password') && this.password) {
-            this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_rounds));
-        }
+userSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    const isExist = await User.findOne({ phone: this.phone });
+    if (isExist) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "Phone number already exist!",
+      );
     }
-    next();
+
+    // password hash
+    if (this.password) {
+      this.password = await bcrypt.hash(
+        this.password,
+        Number(config.bcrypt_salt_rounds),
+      );
+    }
+  } else {
+    if (this.isModified("password") && this.password) {
+      this.password = await bcrypt.hash(
+        this.password,
+        Number(config.bcrypt_salt_rounds),
+      );
+    }
+  }
+  next();
 });
 
-
-export const User = model<IUser, UserModal>("User", userSchema)
+export const User = model<IUser, UserModal>("User", userSchema);

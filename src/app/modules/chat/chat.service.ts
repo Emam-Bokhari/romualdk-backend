@@ -7,7 +7,7 @@ import ApiError from "../../../errors/ApiErrors";
 const createChatIntoDB = async (participants: string[]) => {
   const isExistChat = await Chat.findOne({
     participants: { $all: participants },
-    isDeleted: { $ne: true }, 
+    isDeleted: { $ne: true },
   });
 
   if (isExistChat) {
@@ -82,8 +82,6 @@ const getAllChatsFromDB = async (
           isDeleted: false,
         });
 
-
-
         return {
           ...chat,
           participants: otherParticipants,
@@ -134,7 +132,6 @@ const getAllChatsFromDB = async (
           isDeleted: false,
         });
 
-
         return {
           ...chat,
           participants: otherParticipants,
@@ -181,7 +178,6 @@ const getChatImagesFromDB = async (chatId: string, userId: string) => {
     throw new ApiError(403, "You are not a participant in this chat");
   }
 
-
   // ========================GET IMAGES DATA=======================
   const images = await Message.find({
     chatId,
@@ -190,7 +186,7 @@ const getChatImagesFromDB = async (chatId: string, userId: string) => {
     $or: [{ type: "image" }, { type: "both" }],
   })
     .sort({ createdAt: -1 })
-    .select("image -_id") 
+    .select("image -_id")
     .lean();
 
   // return only image URLs as array
@@ -232,10 +228,6 @@ const softDeleteChatForUser = async (chatId: string, id: string) => {
 
   return chat;
 };
-
-
-
-
 
 export const ChatService = {
   createChatIntoDB,
