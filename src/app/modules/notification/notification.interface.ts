@@ -5,8 +5,7 @@ export type INotification = {
     receiver?: Types.ObjectId;
     read: boolean;
     referenceId?: string;
-    screen?: "RESERVATION" | "CHAT";
-    type?: "ADMIN";
+    type?: string;
 };
 
 export type NotificationModel = Model<INotification>;

@@ -433,7 +433,7 @@ const getSuggestedCarsFromDB = async (
   const defaultLocation: [number, number] = [90.4074, 23.8103];
   const location = userLocation || defaultLocation;
 
-  const maxDistance = 50000; // 50 km
+  const maxDistance = 50000; // 50 km 
 
   const cars = await Car.aggregate([
     {
@@ -487,7 +487,7 @@ const getSuggestedCarsFromDB = async (
     },
     { $unwind: "$userInfo" },
 
-    // Replace userId with only firstName and lastName
+    // replace userId with only firstName and lastName
     {
       $addFields: {
         userId: {
@@ -502,7 +502,7 @@ const getSuggestedCarsFromDB = async (
       },
     },
 
-    // Remove temporary fields
+    // remove temporary fields
     {
       $project: {
         distance: 0,

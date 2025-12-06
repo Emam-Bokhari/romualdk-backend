@@ -1,5 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { INotification, NotificationModel } from './notification.interface';
+import { NOTIFICATION_TYPE } from './notification.constant';
 
 const notificationSchema = new Schema<INotification, NotificationModel>(
     {
@@ -16,22 +17,19 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
             type: String,
             required: false
         },
-        screen: {
-            type: String,
-            required: false
-        },
         read: {
             type: Boolean,
             default: false
         },
         type: {
             type: String,
-            enum: ['ADMIN'],
-            required: false
+            enum: Object.values(NOTIFICATION_TYPE),
+            required: true
         }
     },
     {
-        timestamps: true
+        timestamps: true,
+        versionKey: false
     }
 );
 
