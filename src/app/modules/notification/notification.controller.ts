@@ -18,8 +18,6 @@ const getNotificationFromDB = catchAsync(
   },
 );
 
-// post schedular,
-
 const adminNotificationFromDB = catchAsync(
   async (req: Request, res: Response) => {
     const result = await NotificationService.adminNotificationFromDB();
