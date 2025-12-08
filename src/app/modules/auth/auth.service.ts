@@ -109,7 +109,7 @@ const forgetPasswordToDB = async (payload: any) => {
   const { email, phone, countryCode } = payload;
 
   if (!email && !phone) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Provide phone or email!');
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Provide phone or email!");
   }
 
   let user;
@@ -122,7 +122,7 @@ const forgetPasswordToDB = async (payload: any) => {
     if (!countryCode) {
       throw new ApiError(
         StatusCodes.BAD_REQUEST,
-        'countryCode is required for phone'
+        "countryCode is required for phone",
       );
     }
 
@@ -146,10 +146,10 @@ const forgetPasswordToDB = async (payload: any) => {
 
     await User.findOneAndUpdate(
       { phone, countryCode },
-      { $set: { authentication } }
+      { $set: { authentication } },
     );
 
-    return { via: 'phone', phone, countryCode };
+    return { via: "phone", phone, countryCode };
   }
 
   // ===============================
@@ -182,10 +182,10 @@ const forgetPasswordToDB = async (payload: any) => {
     await User.findOneAndUpdate(
       { email },
       { $set: { authentication } },
-      { new: true }
+      { new: true },
     );
 
-    return { via: 'email', email };
+    return { via: "email", email };
   }
 };
 

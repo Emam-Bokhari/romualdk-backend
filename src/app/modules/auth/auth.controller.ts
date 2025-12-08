@@ -59,11 +59,10 @@ const forgetPassword = catchAsync(async (req: Request, res: Response) => {
     success: true,
     statusCode: StatusCodes.OK,
     message:
-      'Please check your email or phone. We have sent you a one-time passcode (OTP).',
+      "Please check your email or phone. We have sent you a one-time passcode (OTP).",
     data: result,
   });
 });
-
 
 // reset Password
 const resetPassword = catchAsync(async (req, res) => {
@@ -113,7 +112,7 @@ const newAccessToken = catchAsync(async (req: Request, res: Response) => {
 
 // resend OTP (Phone)
 const resendPhoneOTP = catchAsync(async (req: Request, res: Response) => {
-  const { phone, countryCode } = req.body; 
+  const { phone, countryCode } = req.body;
 
   const result = await AuthService.resendPhoneOTPToDB(phone, countryCode);
 

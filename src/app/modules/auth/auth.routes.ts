@@ -27,7 +27,7 @@ router.post("/refresh-token", AuthController.newAccessToken);
 // resend OTP (Phone)
 router.post(
   "/resend-otp",
-  validateRequest(AuthValidation.createResendOTPSchema), 
+  validateRequest(AuthValidation.createResendOTPSchema),
   AuthController.resendPhoneOTP,
 );
 
