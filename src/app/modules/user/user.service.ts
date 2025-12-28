@@ -13,6 +13,11 @@ import { PipelineStage, Types } from "mongoose";
 import { afrikSmsService } from "../../../helpers/afrikSms.service";
 
 const createAdminToDB = async (payload: any): Promise<IUser> => {
+
+  if (payload.phone) {
+      delete payload.phone;
+    }
+    
   // check admin is exist or not;
   const isExistAdmin = await User.findOne({ email: payload.email });
   if (isExistAdmin) {

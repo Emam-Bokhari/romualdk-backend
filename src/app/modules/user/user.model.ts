@@ -191,12 +191,15 @@ userSchema.statics.isMatchPassword = async (
 //check user
 userSchema.pre("save", async function (next) {
   if (this.isNew) {
-    const isExist = await User.findOne({ phone: this.phone });
-    if (isExist) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        "Phone number already exist!"
-      );
+    
+    if (this.phone) {
+      const isExist = await User.findOne({ phone: this.phone });
+      if (isExist) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          "Phone number already exists!"
+        );
+      }
     }
 
     // password hash
@@ -207,6 +210,7 @@ userSchema.pre("save", async function (next) {
       );
     }
   } else {
+    // Update এর ক্ষেত্রে পাসওয়ার্ড হ্যাশ
     if (this.isModified("password") && this.password) {
       this.password = await bcrypt.hash(
         this.password,
