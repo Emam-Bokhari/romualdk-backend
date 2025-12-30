@@ -122,7 +122,7 @@ const deleteAdminFromDB = async (id: any) => {
 
 const createUserToDB = async (payload: Partial<IUser>) => {
   const requiredFields = [
-    "fullName",
+    // "fullName",
     "email",
     "countryCode",
     "phone",

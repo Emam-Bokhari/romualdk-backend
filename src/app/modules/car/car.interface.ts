@@ -12,7 +12,7 @@ export enum AVAILABLE_DAYS {
 
 export enum FUEL_TYPE {
   PETROL = "PETROL",
-  DISEL = "DISEL",
+  DIESEL = "DIESEL",
   ELECTRIC = "ELECTRIC",
   HYBRID = "HYBRID",
 }

@@ -17,6 +17,8 @@ import { Booking } from "../booking/booking.model";
 import { BOOKING_STATUS } from "../booking/booking.interface";
 import { checkCarAvailabilityByDate, getCarCalendar, getCarTripCount, getCarTripCountMap } from "./car.utils";
 
+
+
 const createCarToDB = async (userId: string, payload: ICar) => {
   const user = await User.findOne({
     _id: userId,
@@ -330,33 +332,97 @@ const updateCarVerificationStatusByIdToDB = async (
 };
 
 // for host role
-const getOwnCarsFromDB = async (userId: string) => {
+// const getOwnCarsFromDB = async (userId: string) => {
+//   const user = await User.findOne({
+//     _id: userId,
+//     role: USER_ROLES.HOST,
+//   });
+
+//   if (!user) {
+//     throw new ApiError(404, "No hosts are found by this ID");
+//   }
+
+//   const result = await Car.find({ userId }).populate({
+//     path: "userId",
+//     select: "firstName lastName fullName role profileImage email phone",
+//   });
+
+//   const carsWithBookmark = await Promise.all(
+//     result.map(async (car: any) => {
+//       const isBookmarked = await FavouriteCar.exists({
+//         userId,
+//         referenceId: car._id,
+//       });
+
+//       const reviewSummary = await ReviewServices.getReviewSummaryFromDB(
+//         car.id,
+//         REVIEW_TYPE.CAR,
+//       );
+
+//       return {
+//         ...car.toObject(),
+//         isFavourite: Boolean(isBookmarked),
+//         averageRating: reviewSummary.averageRating,
+//         totalReviews: reviewSummary.totalReviews,
+//         starCounts: reviewSummary.starCounts,
+//         reviews: reviewSummary.reviews,
+//       };
+//     }),
+//   );
+
+//   if (!result || result.length === 0) {
+//     return [];
+//   }
+
+//   return carsWithBookmark;
+// };
+
+interface GetOwnCarsParams {
+  userId: string;
+  verificationStatus?: CAR_VERIFICATION_STATUS;
+}
+
+const getOwnCarsFromDB = async ({
+  userId,
+  verificationStatus,
+}: GetOwnCarsParams) => {
   const user = await User.findOne({
     _id: userId,
     role: USER_ROLES.HOST,
-    hostStatus: HOST_STATUS.APPROVED,
   });
 
   if (!user) {
     throw new ApiError(404, "No hosts are found by this ID");
   }
 
-  const result = await Car.find({ userId }).populate({
+  const carQuery: Record<string, any> = { userId };
+
+  //  enum-safe filter
+  if (verificationStatus) {
+    carQuery.verificationStatus = verificationStatus;
+  }
+
+  const cars = await Car.find(carQuery).populate({
     path: "userId",
     select: "firstName lastName fullName role profileImage email phone",
   });
 
-  const carsWithBookmark = await Promise.all(
-    result.map(async (car: any) => {
+  if (!cars.length) {
+    return [];
+  }
+
+  const carsWithMeta = await Promise.all(
+    cars.map(async (car) => {
       const isBookmarked = await FavouriteCar.exists({
         userId,
         referenceId: car._id,
       });
 
-      const reviewSummary = await ReviewServices.getReviewSummaryFromDB(
-        car.id,
-        REVIEW_TYPE.CAR,
-      );
+      const reviewSummary =
+        await ReviewServices.getReviewSummaryFromDB(
+          car._id.toString(),
+          REVIEW_TYPE.CAR
+        );
 
       return {
         ...car.toObject(),
@@ -366,14 +432,10 @@ const getOwnCarsFromDB = async (userId: string) => {
         starCounts: reviewSummary.starCounts,
         reviews: reviewSummary.reviews,
       };
-    }),
+    })
   );
 
-  if (!result || result.length === 0) {
-    return [];
-  }
-
-  return carsWithBookmark;
+  return carsWithMeta;
 };
 
 const getCarByIdFromDB = async (id: string, userId: string) => {

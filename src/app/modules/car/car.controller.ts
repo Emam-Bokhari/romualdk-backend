@@ -2,6 +2,7 @@ import ApiError from "../../../errors/ApiErrors";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { CarServices } from "./car.service";
+import { normalizeCarVerificationStatus } from "./car.utils";
 
 const createCar = catchAsync(async (req, res) => {
   const { id: userId } = req.user;
@@ -74,14 +75,19 @@ const getAllCars = catchAsync(async (req, res) => {
 });
 
 const getOwnCars = catchAsync(async (req, res) => {
-  const { id: userId } = req.user;
+  const { verificationStatus } = req.query;
 
-  const result = await CarServices.getOwnCarsFromDB(userId);
+  const result = await CarServices.getOwnCarsFromDB({
+    userId: req.user.id,
+    verificationStatus: normalizeCarVerificationStatus(
+      verificationStatus as string
+    ),
+  });
 
   sendResponse(res, {
-    success: true,
     statusCode: 200,
-    message: "Own cars data are retrieved successfully",
+    success: true,
+    message: "Cars retrieved successfully",
     data: result,
   });
 });

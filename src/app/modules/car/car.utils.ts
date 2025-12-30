@@ -2,6 +2,8 @@ import { Types } from "mongoose";
 import { Booking } from "../booking/booking.model";
 import { CAR_STATUS } from "../booking/booking.interface";
 import { CarServices } from "./car.service";
+import { CAR_VERIFICATION_STATUS } from "./car.interface";
+import ApiError from "../../../errors/ApiErrors";
 
 export const getCarTripCount = async (
     carId: Types.ObjectId | string
@@ -100,4 +102,25 @@ export const getCarCalendar = async (carId: string) => {
         });
     }
     return calendar;
+};
+
+export const normalizeCarVerificationStatus = (
+  status?: string
+): CAR_VERIFICATION_STATUS | undefined => {
+  if (!status) return undefined;
+
+  const normalized = status.toUpperCase();
+
+  if (
+    !Object.values(CAR_VERIFICATION_STATUS).includes(
+      normalized as CAR_VERIFICATION_STATUS
+    )
+  ) {
+    throw new ApiError(
+      400,
+      `Invalid car verification status: ${status}`
+    );
+  }
+
+  return normalized as CAR_VERIFICATION_STATUS;
 };
