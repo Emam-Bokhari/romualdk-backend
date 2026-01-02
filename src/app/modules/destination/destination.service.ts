@@ -9,6 +9,15 @@ const createDestination = async (payload: TDestination) => {
     return destination;
 }
 
+const getDestinationsFromDB = async () => {
+    const result = await destinationModel.find();
+    if (!result || result.length === 0) {
+        return []
+    }
+    return result;
+}
+
 export const DestinationServices = {
     createDestination,
+    getDestinationsFromDB,
 }
