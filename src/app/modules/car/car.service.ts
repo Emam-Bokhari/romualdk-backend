@@ -17,6 +17,7 @@ import { Booking } from "../booking/booking.model";
 import { BOOKING_STATUS } from "../booking/booking.interface";
 import { checkCarAvailabilityByDate, getCarCalendar, getCarTripCount, getCarTripCountMap } from "./car.utils";
 import redisClient from "../../../shared/redisClient";
+import { Destination } from "../destination/destination.model";
 
 
 
@@ -1180,6 +1181,25 @@ const isCarBookableForDay = async (car: any, date: Date): Promise<boolean> => {
   return !bookingExists;
 };
 
+
+const getCarsByDestinationFromDB = async (destinationId: string) => {
+  // destination find
+  const destination = await Destination.findById(destinationId);
+
+  if (!destination) {
+    throw new ApiError(404, "Destination not found");
+  }
+
+  // cars by city (basic + fast)
+  const result = await Car.find({
+    city: destination.city,
+    isActive: true,
+    verificationStatus: CAR_VERIFICATION_STATUS.APPROVED,
+  }).sort({ createdAt: -1 });
+
+  return result
+};
+
 export const CarServices = {
   createCarToDB,
   getAllCarsFromDB,
@@ -1193,4 +1213,5 @@ export const CarServices = {
   updateCarVerificationStatusByIdToDB,
   getSuggestedCarsFromDB,
   getRecentCarsFromDB,
+  getCarsByDestinationFromDB
 };

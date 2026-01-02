@@ -256,6 +256,30 @@ const getSuggestedCars = catchAsync(async (req, res) => {
   });
 });
 
+const getCarsByDestination = catchAsync(
+  async (req, res) => {
+    const { destinationId } = req.params;
+
+    if (!destinationId) {
+      return sendResponse(res, {
+        statusCode:400,
+        success: false,
+        message: "Destination ID is required",
+      });
+    }
+
+    // fetch destination & cars
+    const result = await CarServices.getCarsByDestinationFromDB(destinationId);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Cars fetched successfully by destination",
+      data: result,
+    });
+  }
+);
+
 
 
 export const CarControllers = {
@@ -271,4 +295,5 @@ export const CarControllers = {
   updateCarVerificationStatusById,
   getSuggestedCars,
   getRecentCars,
+  getCarsByDestination,
 };

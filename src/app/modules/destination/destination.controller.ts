@@ -3,7 +3,8 @@ import sendResponse from "../../../shared/sendResponse";
 import { DestinationServices } from "./destination.service";
 
 const createDestination = catchAsync(async (req, res) => {
-    const { data } = req.body
+    const data = req.body
+
     const result = await DestinationServices.createDestination(data)
     sendResponse(res, {
         success: true,

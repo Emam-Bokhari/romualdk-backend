@@ -44,6 +44,8 @@ router.get(
   CarControllers.getSuggestedCars,
 );
 
+router.get("/by-destination/:destinationId", CarControllers.getCarsByDestination);
+
 router.get("/availability/:carId", CarControllers.getAvailability);
 
 router.patch(

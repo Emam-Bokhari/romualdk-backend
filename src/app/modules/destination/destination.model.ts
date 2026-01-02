@@ -5,26 +5,31 @@ const destinationSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    city:{
-        type:String,
-        required:true
-    },
-     pickupPoint: {
-      type: {
+    city: {
         type: String,
-        enum: ["Point"],
-        default: "Point",
-      },
-      coordinates: {
-        type: [Number],
-        required: true,
-      }, // [lng, lat]
-      address: {
-        type: String,
-        default: "",
-      },
+        required: true
     },
-    
-})
+    pickupPoint: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            default: "Point",
+        },
+        coordinates: {
+            type: [Number],
+            required: true,
+        }, // [lng, lat]
+        address: {
+            type: String,
+            default: "",
+        },
+    },
 
-export default mongoose.model("Destination", destinationSchema);
+},
+    {
+        timestamps: true,
+        versionKey: false
+    }
+)
+
+export const Destination = mongoose.model("Destination", destinationSchema);

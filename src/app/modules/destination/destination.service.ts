@@ -1,8 +1,9 @@
 import { TDestination } from "./destination.interface";
-import destinationModel from "./destination.model";
+import { Destination } from "./destination.model";
+
 
 const createDestination = async (payload: TDestination) => {
-    const destination = await destinationModel.create(payload);
+    const destination = await Destination.create(payload);
     if (!destination) {
         throw new Error("Failed to create destination");
     }
@@ -10,7 +11,7 @@ const createDestination = async (payload: TDestination) => {
 }
 
 const getDestinationsFromDB = async () => {
-    const result = await destinationModel.find();
+    const result = await Destination.find();
     if (!result || result.length === 0) {
         return []
     }
