@@ -6,6 +6,7 @@ import colors from "colors";
 import { socketHelper } from "./helpers/socketHelper";
 import { Server } from "socket.io";
 import seedSuperAdmin from "./DB";
+import redisClient from "./shared/redisClient";
 
 //uncaught exception
 process.on("uncaughtException", (error) => {
@@ -17,8 +18,10 @@ let server: any;
 
 async function main() {
   try {
+
     // create super admin
     seedSuperAdmin();
+    // await redisClient.connect();
 
     mongoose.connect(config.database_url as string);
     logger.info(colors.green("🚀 Database connected successfully"));

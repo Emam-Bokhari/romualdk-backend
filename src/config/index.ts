@@ -14,6 +14,10 @@ export default {
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
     jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
   },
+  redis_host: process.env.REDIS_HOST,
+  redis_port: process.env.REDIS_PORT,
+  redis_password: process.env.REDIS_PASSWORD,
+  redis_db: process.env.REDIS_DB,
 
   // cinetpay: {
   //   CINATPAY_SITE_ID: process.env.CINATPAY_SITE_ID!,

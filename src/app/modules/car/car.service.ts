@@ -16,6 +16,7 @@ import { REVIEW_TYPE } from "../review/review.interface";
 import { Booking } from "../booking/booking.model";
 import { BOOKING_STATUS } from "../booking/booking.interface";
 import { checkCarAvailabilityByDate, getCarCalendar, getCarTripCount, getCarTripCountMap } from "./car.utils";
+import redisClient from "../../../shared/redisClient";
 
 
 
@@ -40,13 +41,23 @@ const createCarToDB = async (userId: string, payload: ICar) => {
     });
   }
 
-  const result = await Car.create(payload);
+  // const result = await Car.create(payload);
 
-  if (!result) {
-    throw new ApiError(400, "Failed to create a car");
+  // if (!result) {
+  //   throw new ApiError(400, "Failed to create a car");
+  // }
+
+  // return result;
+
+  try {
+    const result = await Car.create(payload);
+    return result;
+  } catch (error: any) {
+    if (error.code === 11000) {
+      throw new ApiError(400, "Car with this license plate already exists");
+    }
+    throw new ApiError(error.statusCode || 500, error.message || "Failed to create a car");
   }
-
-  return result;
 };
 
 // for feed
@@ -117,6 +128,16 @@ const createCarToDB = async (userId: string, payload: ICar) => {
 // };
 
 const getAllCarsFromDB = async (query: any, userId: string) => {
+
+  // =========================redis========================
+  // const redisKey = `cars:${userId}:${JSON.stringify(query)}`
+
+  // const cached = await redisClient.get(redisKey)
+
+  // if (cached) {
+  //   return JSON.parse(cached)
+  // }
+
   const {
     searchTerm,
     minPrice, maxPrice,
@@ -248,7 +269,8 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
   // filter out nulls
   const finalCars = processedCars.filter(car => car !== null);
 
-  return {
+  const result =
+  {
     data: finalCars,
     meta: {
       page: Number(page),
@@ -256,7 +278,55 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
       total: finalCars.length,
     },
   };
+
+  // await redisClient.set(redisKey, JSON.stringify(result), { EX: 300 })
+
+  return result;
+
 };
+
+const getRecentCarsFromDB = async (userId?: string) => {
+  const limit = 10;
+
+  const cars = await Car.find({
+    verificationStatus: CAR_VERIFICATION_STATUS.APPROVED,
+    isActive: true,
+  })
+    .sort({ createdAt: -1 }) // recent first
+    .limit(limit)
+    .populate({
+      path: "userId",
+      select: "firstName lastName fullName profileImage",
+    })
+    .lean();
+
+  // optional: user-specific favourite check
+  let favouriteMap: Record<string, boolean> = {};
+
+  if (userId) {
+    const favourites = await FavouriteCar.find({
+      userId,
+      referenceId: { $in: cars.map(c => c._id) },
+    }).select("referenceId");
+
+    favourites.forEach(fav => {
+      favouriteMap[fav.referenceId.toString()] = true;
+    });
+  }
+
+  const result = cars.map(car => ({
+    ...car,
+    isFavourite: Boolean(favouriteMap[car._id.toString()]),
+  }));
+
+  return {
+    data: result,
+    meta: {
+      total: result.length,
+    },
+  };
+};
+
 
 // for verifications, dashboard
 const getAllCarsForVerificationsFromDB = async (query: any) => {
@@ -1122,4 +1192,5 @@ export const CarServices = {
   getAllCarsForVerificationsFromDB,
   updateCarVerificationStatusByIdToDB,
   getSuggestedCarsFromDB,
+  getRecentCarsFromDB,
 };

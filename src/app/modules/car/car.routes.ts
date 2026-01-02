@@ -4,6 +4,7 @@ import { USER_ROLES } from "../../../enums/user";
 import { CarControllers } from "./car.controller";
 import fileUploadHandler from "../../middlewares/fileUploaderHandler";
 import parseAllFilesData from "../../middlewares/parseAllFileData";
+import optionalAuth from "../../middlewares/optionalAuth";
 
 const router = express.Router();
 
@@ -28,6 +29,12 @@ router
     ),
     CarControllers.getAllCars,
   );
+
+router.get(
+  "/recent",
+  optionalAuth(),
+  CarControllers.getRecentCars
+);
 
 router.get("/my", auth(USER_ROLES.HOST), CarControllers.getOwnCars);
 

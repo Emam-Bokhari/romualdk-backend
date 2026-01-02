@@ -74,6 +74,23 @@ const getAllCars = catchAsync(async (req, res) => {
   });
 });
 
+const getRecentCars = catchAsync(
+  async (req, res) => {
+    const userId = req.user?.id;
+
+    const result = await CarServices.getRecentCarsFromDB(userId);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Recent cars retrieved successfully",
+      data: result.data,
+      meta: result.meta,
+    });
+  }
+);
+
+
 const getOwnCars = catchAsync(async (req, res) => {
   const { verificationStatus } = req.query;
 
@@ -239,6 +256,8 @@ const getSuggestedCars = catchAsync(async (req, res) => {
   });
 });
 
+
+
 export const CarControllers = {
   createCar,
   getAllCars,
@@ -251,4 +270,5 @@ export const CarControllers = {
   getAllCarsForVerifications,
   updateCarVerificationStatusById,
   getSuggestedCars,
+  getRecentCars,
 };

@@ -7,6 +7,7 @@ import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import path from "path";
 import { PaymentController } from "./app/modules/payment/payment.controller";
 import { globalRateLimiter } from "./app/middlewares/rateLimiter";
+import v2Router from "./app/routes/v2";
 
 
 const app: Application = express();
@@ -47,6 +48,7 @@ app.use(express.static("uploads"));
 
 //router
 app.use("/api/v1", router);
+router.use("/api/v2", v2Router);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Server is running...");
