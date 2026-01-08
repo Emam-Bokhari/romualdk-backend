@@ -52,6 +52,7 @@ export interface ICar {
   verificationStatus: CAR_VERIFICATION_STATUS;
   shortDescription: string;
   licensePlate: string;
+  vin?: string;
   carRegistrationPaperFrontPic: string;
   carRegistrationPaperBackPic: string;
   images: string[];

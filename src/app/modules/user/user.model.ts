@@ -44,6 +44,7 @@ const userSchema = new Schema<IUser, UserModal>(
     profileImage: {
       type: String,
       required: false,
+      default: "",
     },
     nidFrontPic: {
       type: String,

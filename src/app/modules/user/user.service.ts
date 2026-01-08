@@ -787,6 +787,7 @@ const getHostDetailsByIdFromDB = async (id: string) => {
                 email: 1,
                 phone: 1,
                 profileImage: 1,
+                location: 1,
               }
             }
           }

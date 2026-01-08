@@ -296,6 +296,7 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
     city,
     rating,
     latitude, longitude, maxDistance,
+    withDriver,
     date,
     time,
     sort,
@@ -319,6 +320,10 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
       { model: { $regex: searchTerm, $options: "i" } },
       { city: { $regex: searchTerm, $options: "i" } },
     ];
+  }
+
+  if (withDriver !== undefined) {
+    filter.withDriver = withDriver === "true" || withDriver === true;
   }
 
   // Price Range

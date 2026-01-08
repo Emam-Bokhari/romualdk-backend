@@ -59,12 +59,12 @@ const sendMessageToDB = async (payload: IMessage): Promise<IMessage> => {
 
   // get populated message for socket
   const populatedMessage = await Message.findById(response._id)
-    .populate("sender", "name email profileImage")
+    .populate("sender", "firstName lastName role email profileImage")
     .lean();
 
   // get updated chat with populated data for chat list update
   const populatedChat = await Chat.findById(response?.chatId)
-    .populate("participants", "name email profileImage")
+    .populate("participants", "firstName lastName role email profileImage")
     .populate("lastMessage")
     .lean();
 
@@ -139,9 +139,9 @@ const getMessagesFromDB = async (
   const response = await Message.find({ chatId })
     .populate({
       path: "sender",
-      select: "name email profileImage",
+      select: "firstName lastName role email profileImage",
     })
-    .populate({ path: "pinnedBy", select: "name" })
+    .populate({ path: "pinnedBy", select: "firstName lastName role email profileImage" })
 
     .skip(skip)
     .limit(limitInt)
@@ -172,9 +172,9 @@ const getMessagesFromDB = async (
   })
     .populate({
       path: "sender",
-      select: "name email profileImage",
+      select: "firstName lastName role email profileImage",
     })
-    .populate({ path: "pinnedBy", select: "name" })
+    .populate({ path: "pinnedBy", select: "firstName lastName role email profileImage" })
     .sort({ pinnedAt: -1 });
 
   const formattedMessages = response.map((message) => ({
@@ -280,7 +280,7 @@ const pinUnpinMessage = async (
       if (pinnedCount >= 10) {
         throw new ApiError(400, "Maximum 10 messages can be pinned per chat");
       }
-
+      
       // Pin the message
       const updatedMessage = await Message.findByIdAndUpdate(
         messageId,

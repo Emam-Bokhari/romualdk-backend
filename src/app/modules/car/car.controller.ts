@@ -34,6 +34,7 @@ const getAllCars = catchAsync(async (req, res) => {
     rating,
     latitude,
     longitude,
+    withDriver,
     maxDistance,
     date,
     time,
@@ -55,6 +56,7 @@ const getAllCars = catchAsync(async (req, res) => {
     rating,
     latitude,
     longitude,
+    withDriver,
     maxDistance,
     date,
     time,
@@ -262,7 +264,7 @@ const getCarsByDestination = catchAsync(
 
     if (!destinationId) {
       return sendResponse(res, {
-        statusCode:400,
+        statusCode: 400,
         success: false,
         message: "Destination ID is required",
       });
