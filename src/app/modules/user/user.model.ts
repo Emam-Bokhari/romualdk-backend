@@ -10,11 +10,11 @@ const userSchema = new Schema<IUser, UserModal>(
   {
     firstName: {
       type: String,
-      // required: true,
+      required: true,
     },
     lastName: {
       type: String,
-      // required: true,
+      required: true,
     },
     role: {
       type: String,
@@ -28,12 +28,12 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     phone: {
       type: String,
-      // required: true,
-      // unique: true,
+      required: true,
+      unique: true,
     },
     countryCode: {
       type: String,
-      // required: true,
+      required: true,
     },
     email: {
       type: String,
@@ -70,12 +70,20 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     dateOfBirth: {
       type: String,
-      // required: true,
+      required: true,
     },
     gender: {
       type: String,
       enum: Object.values(GENDER),
       required: false,
+    },
+    lastSmsResourceId: {
+      type: String,
+      required: false,
+    },
+    isOtpDelivered: {
+      type: Boolean,
+      default: false,
     },
     city: {
       type: String,
@@ -211,7 +219,7 @@ userSchema.pre("save", async function (next) {
       );
     }
   } else {
-    // Update এর ক্ষেত্রে পাসওয়ার্ড হ্যাশ
+    
     if (this.isModified("password") && this.password) {
       this.password = await bcrypt.hash(
         this.password,

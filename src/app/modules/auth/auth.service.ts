@@ -489,6 +489,7 @@ const resetPasswordToDB = async (
   payload: { newPassword: string; confirmPassword: string },
 ) => {
   const { newPassword, confirmPassword } = payload;
+  console.log(token,"token")
 
   //  Password matching check
   if (newPassword !== confirmPassword) {
@@ -500,6 +501,7 @@ const resetPasswordToDB = async (
 
   // Token exist check
   const isExistToken = await ResetToken.findOne({ token });
+  console.log("isExistToken:", isExistToken);
   if (!isExistToken) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "You are not authorized");
   }
@@ -566,7 +568,7 @@ const changePasswordToDB = async (
   //current password match
   if (
     currentPassword &&
-    !(await User.isMatchPassword(currentPassword, isExistUser.password))
+    !(await User.isMatchPassword(currentPassword, isExistUser.password as string))
   ) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Password is incorrect");
   }
@@ -705,7 +707,7 @@ const deleteUserFromDB = async (user: JwtPayload, password: string) => {
   //check match password
   if (
     password &&
-    !(await User.isMatchPassword(password, isExistUser.password))
+    !(await User.isMatchPassword(password, isExistUser.password as string))
   ) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Password is incorrect");
   }

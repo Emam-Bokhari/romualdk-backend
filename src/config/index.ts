@@ -48,6 +48,7 @@ export default {
     clientId: process.env.AFRIKSMS_CLIENT_ID,
     apiKey: process.env.AFRIKSMS_API_KEY,
     senderId: process.env.AFRIKSMS_SENDER_ID || "AFRIKSMS",
+    callbackUrl: process.env.AFRIKSMS_CALLBACK_URL,
   },
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID,

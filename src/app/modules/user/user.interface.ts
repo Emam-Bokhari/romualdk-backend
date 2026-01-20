@@ -14,9 +14,11 @@ export type IUser = {
   hostStatus: HOST_STATUS;
   drivingLicenseFrontPic?: string;
   drivingLicenseBackPic?: string;
-  password: string;
+  password?: string;
   dateOfBirth: string;
   gender?: GENDER;
+  lastSmsResourceId?: string; // optional
+  isOtpDelivered?: boolean; 
   city?: string;
   verified: boolean;
   status: STATUS;

@@ -40,7 +40,7 @@ router.get("/my", auth(USER_ROLES.HOST), CarControllers.getOwnCars);
 
 router.get(
   "/suggested",
-  auth(USER_ROLES.USER),
+  auth(USER_ROLES.USER, USER_ROLES.HOST),
   CarControllers.getSuggestedCars,
 );
 

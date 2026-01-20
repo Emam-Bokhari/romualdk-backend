@@ -13,6 +13,7 @@ import QueryBuilder from "../../builder/queryBuilder";
  
 // -------- Create Booking ----------
 const createBooking = async (body: any, userId: string) => {
+  console.log(body);
   const { carId, fromDate, toDate, type } = body;
   const car = await Car.findById(carId);
   if (!car) throw new Error("Car not found");
@@ -31,6 +32,7 @@ const createBooking = async (body: any, userId: string) => {
     status: BOOKING_STATUS.PENDING,
     type: type || Driver_STATUS.WITHOUTDRIVER,
   });
+  console.log(booking);
  
   return booking;
 };

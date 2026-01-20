@@ -60,7 +60,7 @@ router.post(
     { fieldName: FOLDER_NAMES.DRIVING_LICENSE_BACK_PIC, forceSingle: true },
   ),
   UserController.createHostRequest,
-); 
+);
 
 router
   .route("/host-request/status/:id")

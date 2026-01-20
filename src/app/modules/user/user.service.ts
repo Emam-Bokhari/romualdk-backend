@@ -11,13 +11,15 @@ import config from "../../../config";
 import QueryBuilder from "../../builder/queryBuilder";
 import { PipelineStage, Types } from "mongoose";
 import { afrikSmsService } from "../../../helpers/afrikSms.service";
+import { getTargetLocation } from "../car/car.utils";
+import { SMSLog } from "../smsLog/smsLog.model";
 
 const createAdminToDB = async (payload: any): Promise<IUser> => {
 
   if (payload.phone) {
-      delete payload.phone;
-    }
-    
+    delete payload.phone;
+  }
+
   // check admin is exist or not;
   const isExistAdmin = await User.findOne({ email: payload.email });
   if (isExistAdmin) {
@@ -120,15 +122,69 @@ const deleteAdminFromDB = async (id: any) => {
 //   return result;
 // };
 
-const createUserToDB = async (payload: Partial<IUser>) => {
-  const requiredFields = [
-    // "fullName",
-    "email",
-    "countryCode",
-    "phone",
-    "password",
-  ];
+// const createUserToDB = async (payload: Partial<IUser>) => {
+//   const requiredFields = [
+//     // "firstName",
+//     "countryCode",
+//     "phone",
+//     // "password",
+//   ];
 
+//   const missingFields = requiredFields.filter(
+//     (field) => !payload[field as keyof IUser]
+//   );
+
+//   if (missingFields.length > 0) {
+//     throw new ApiError(400, `Missing required fields: ${missingFields.join(", ")}`);
+//   }
+
+//   // generate numeric OTP
+//   const otp = afrikSmsService.generateOTP();
+//   const expireAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+//   payload.authentication = {
+//     oneTimeCode: otp,
+//     expireAt: expireAt,
+//     isResetPassword: false
+//   };
+
+//   const createUser = await User.create(payload);
+
+//   if (!createUser)
+//     throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create user");
+
+//   const smsMessage = `Your verification code is ${otp}. Valid for 5 minutes.`;
+
+//   try {
+//     await afrikSmsService.sendSMS(
+//       createUser.phone,
+//       createUser.countryCode,
+//       smsMessage
+//     );
+//   } catch (error) {
+//     console.error("SMS Sending failed:", error);
+
+//   }
+
+//   const createToken = jwtHelper.createToken(
+//     {
+//       id: createUser._id,
+//       phone: createUser.phone,
+//       role: createUser.role,
+//     },
+//     config.jwt.jwt_secret as Secret,
+//     config.jwt.jwt_expire_in as string,
+//   );
+
+//   return {
+//     token: createToken,
+//     user: createUser,
+//   };
+// };
+
+
+const createUserToDB = async (payload: Partial<IUser>) => {
+  const requiredFields = ["countryCode", "phone"];
   const missingFields = requiredFields.filter(
     (field) => !payload[field as keyof IUser]
   );
@@ -137,13 +193,12 @@ const createUserToDB = async (payload: Partial<IUser>) => {
     throw new ApiError(400, `Missing required fields: ${missingFields.join(", ")}`);
   }
 
-  // generate numeric OTP
   const otp = afrikSmsService.generateOTP();
-  const expireAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+  const expireAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
 
   payload.authentication = {
     oneTimeCode: otp,
-    expireAt: expireAt,
+    expireAt,
     isResetPassword: false
   };
 
@@ -152,27 +207,28 @@ const createUserToDB = async (payload: Partial<IUser>) => {
   if (!createUser)
     throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create user");
 
-  const smsMessage = `Your Emma verification code is ${otp}. Valid for 5 minutes.`;
+  const smsMessage = `Your verification code is ${otp}. Valid for 5 minutes.`;
 
   try {
-    await afrikSmsService.sendSMS(
+    // Send SMS + save log
+    const smsLog = await afrikSmsService.sendSMS(
       createUser.phone,
       createUser.countryCode,
-      smsMessage
+      smsMessage,
+      createUser._id.toString()
     );
-  } catch (error) {
-    console.error("SMS Sending failed:", error);
 
+    // optionally save in DB if you want separate log collection
+    await SMSLog.create(smsLog);
+
+  } catch (error) {
+    console.error("SMS sending failed:", error);
   }
 
   const createToken = jwtHelper.createToken(
-    {
-      id: createUser._id,
-      phone: createUser.phone,
-      role: createUser.role,
-    },
+    { id: createUser._id, phone: createUser.phone, role: createUser.role },
     config.jwt.jwt_secret as Secret,
-    config.jwt.jwt_expire_in as string,
+    config.jwt.jwt_expire_in as string
   );
 
   return {
@@ -737,17 +793,154 @@ const getHostByIdFromDB = async (id: string) => {
 };
 
 
-const getHostDetailsByIdFromDB = async (id: string) => {
+// const getHostDetailsByIdFromDB = async (id: string) => {
+//   if (!Types.ObjectId.isValid(id)) {
+//     throw new ApiError(400, "Invalid host ID");
+//   }
+
+//   const pipeline: PipelineStage[] = [
+//     {
+//       $match: {
+//         _id: new Types.ObjectId(id),
+//         hostStatus: HOST_STATUS.APPROVED,
+//       },
+//     },
+//     /* Join Cars & Reviews */
+//     {
+//       $lookup: {
+//         from: "cars",
+//         localField: "_id",
+//         foreignField: "userId",
+//         as: "cars",
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "reviews",
+//         let: { host_id: "$_id" },
+//         pipeline: [
+//           { $match: { $expr: { $eq: ["$hostId", "$$host_id"] } } },
+//           { $sort: { createdAt: -1 } },
+//           {
+//             $lookup: {
+//               from: "users",
+//               localField: "fromUserId",
+//               foreignField: "_id",
+//               as: "fromUser"
+//             }
+//           },
+//           { $unwind: "$fromUser" },
+//           {
+//             $project: {
+//               reviewId: "$_id",
+//               ratingValue: 1,
+//               feedback: 1,
+//               fromUser: {
+//                 _id: 1,
+//                 firstName: 1,
+//                 lastName: 1,
+//                 role: 1,
+//                 email: 1,
+//                 phone: 1,
+//                 profileImage: 1,
+//                 location: 1,
+//               }
+//             }
+//           }
+//         ],
+//         as: "reviews",
+//       },
+//     },
+//     /*  Calculation Stage (Filter & Stats) */
+//     {
+//       $addFields: {
+//         cars: {
+//           $filter: {
+//             input: "$cars",
+//             as: "car",
+//             cond: {
+//               $and: [
+//                 { $eq: ["$$car.verificationStatus", "APPROVED"] },
+//                 { $eq: ["$$car.isActive", true] },
+//               ],
+//             },
+//           },
+//         },
+//         totalReviews: { $size: "$reviews" },
+//         averageRating: {
+//           $cond: [
+//             { $gt: [{ $size: "$reviews" }, 0] },
+//             { $round: [{ $avg: "$reviews.ratingValue" }, 1] },
+//             0
+//           ]
+//         },
+//         starCounts: {
+//           "1": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 1] } } } },
+//           "2": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 2] } } } },
+//           "3": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 3] } } } },
+//           "4": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 4] } } } },
+//           "5": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 5] } } } },
+//         }
+//       },
+//     },
+//     /*  Get total count of filtered cars */
+//     {
+//       $addFields: {
+//         totalCars: { $size: "$cars" }
+//       }
+//     },
+//     //  strict projection
+//     {
+//       $project: {
+//         _id: 1,
+//         firstName: 1,
+//         lastName: 1,
+//         countryCode: 1,
+//         phone: 1,
+//         hostStatus: 1,
+//         location: 1,
+//         cars: 1,
+//         totalCars: 1,
+//         totalReviews: 1,
+//         averageRating: 1,
+//         starCounts: 1,
+//         reviews: 1,
+//       },
+//     },
+//   ];
+
+//   const result = await User.aggregate(pipeline);
+
+//   if (!result.length) {
+//     throw new ApiError(404, "No host is found in the database by this ID");
+//   }
+
+//   return result[0];
+// };
+
+// Updated function signature to accept location context
+const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
   if (!Types.ObjectId.isValid(id)) {
     throw new ApiError(400, "Invalid host ID");
   }
 
+
+
+  // 1. Get the visitor's location (same logic as getAllCars)
+  const { lat, lng } = await getTargetLocation(undefined, undefined, visitorId);
+
   const pipeline: PipelineStage[] = [
+    // 2. $geoNear MUST be first. It calculates distance and filters by ID simultaneously.
     {
-      $match: {
-        _id: new Types.ObjectId(id),
-        hostStatus: HOST_STATUS.APPROVED,
-      },
+      $geoNear: {
+        near: { type: "Point", coordinates: [lng, lat] },
+        distanceField: "distance", // This adds the distance field
+        spherical: true,
+        query: {
+          _id: new Types.ObjectId(id),
+          hostStatus: HOST_STATUS.APPROVED
+        }
+      }
     },
     /* Join Cars & Reviews */
     {
@@ -795,9 +988,16 @@ const getHostDetailsByIdFromDB = async (id: string) => {
         as: "reviews",
       },
     },
-    /*  Calculation Stage (Filter & Stats) */
+    /* Calculation Stage */
     {
       $addFields: {
+        // Convert distance from meters to kilometers (and fix to 1 decimal)
+        distance: {
+          $concat: [
+            { $toString: { $round: [{ $divide: ["$distance", 1000] }, 1] } },
+            // " km" 
+          ]
+        },
         cars: {
           $filter: {
             input: "$cars",
@@ -827,13 +1027,11 @@ const getHostDetailsByIdFromDB = async (id: string) => {
         }
       },
     },
-    /*  Get total count of filtered cars */
     {
       $addFields: {
         totalCars: { $size: "$cars" }
       }
     },
-    //  strict projection
     {
       $project: {
         _id: 1,
@@ -843,6 +1041,7 @@ const getHostDetailsByIdFromDB = async (id: string) => {
         phone: 1,
         hostStatus: 1,
         location: 1,
+        distance: 1, // Include distance in final output
         cars: 1,
         totalCars: 1,
         totalReviews: 1,
