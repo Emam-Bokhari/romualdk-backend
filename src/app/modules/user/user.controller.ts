@@ -29,6 +29,7 @@ const createUser = catchAsync(
 // register admin
 const createAdmin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+
     const { ...userData } = req.body;
     const result = await UserService.createAdminToDB(userData);
 
@@ -284,8 +285,8 @@ const getHostById = catchAsync(async (req, res) => {
 });
 const getHostDetailsById = catchAsync(async (req, res) => {
   const { id } = req.params;
-  console.log(id, "ID");
-  const result = await UserService.getHostDetailsByIdFromDB(id);
+  const { id: visitorId } = req.user as any;
+  const result = await UserService.getHostDetailsByIdFromDB(id, visitorId);
 
   sendResponse(res, {
     success: true,

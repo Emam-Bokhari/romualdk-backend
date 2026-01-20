@@ -14,6 +14,10 @@ export default {
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
     jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
   },
+  redis_host: process.env.REDIS_HOST,
+  redis_port: process.env.REDIS_PORT,
+  redis_password: process.env.REDIS_PASSWORD,
+  redis_db: process.env.REDIS_DB,
 
   // cinetpay: {
   //   CINATPAY_SITE_ID: process.env.CINATPAY_SITE_ID!,
@@ -44,6 +48,7 @@ export default {
     clientId: process.env.AFRIKSMS_CLIENT_ID,
     apiKey: process.env.AFRIKSMS_API_KEY,
     senderId: process.env.AFRIKSMS_SENDER_ID || "AFRIKSMS",
+    callbackUrl: process.env.AFRIKSMS_CALLBACK_URL,
   },
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID,

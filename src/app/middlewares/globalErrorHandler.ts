@@ -6,6 +6,8 @@ import handleZodError from "../../errors/handleZodError";
 import { errorLogger } from "../../shared/logger";
 import { IErrorMessage } from "../../types/errors.types";
 import { StatusCodes } from "http-status-codes";
+import { RESPONSE_MODE } from "../../constants/responseMode";
+import { responseMode } from "../../config/responseMode";
 
 const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
   config.node_env === "development"
@@ -31,53 +33,69 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
     message = "Session Expired";
     errorMessages = error?.message
       ? [
-          {
-            path: "",
-            message:
-              "Your session has expired. Please log in again to continue.",
-          },
-        ]
+        {
+          path: "",
+          message:
+            "Your session has expired. Please log in again to continue.",
+        },
+      ]
       : [];
   } else if (error.name === "JsonWebTokenError") {
     statusCode = StatusCodes.UNAUTHORIZED;
     message = "Invalid Token";
     errorMessages = error?.message
       ? [
-          {
-            path: "",
-            message: "Your token is invalid. Please log in again to continue.",
-          },
-        ]
+        {
+          path: "",
+          message: "Your token is invalid. Please log in again to continue.",
+        },
+      ]
       : [];
   } else if (error instanceof ApiError) {
     statusCode = error.statusCode;
     message = error.message;
     errorMessages = error.message
       ? [
-          {
-            path: "",
-            message: error.message,
-          },
-        ]
+        {
+          path: "",
+          message: error.message,
+        },
+      ]
       : [];
   } else if (error instanceof Error) {
     message = error.message;
     errorMessages = error.message
       ? [
-          {
-            path: "",
-            message: error?.message,
-          },
-        ]
+        {
+          path: "",
+          message: error?.message,
+        },
+      ]
       : [];
   }
 
-  res.status(statusCode).json({
+  // main switch here
+  if (responseMode === RESPONSE_MODE.SOFT) {
+    return res.status(200).json({
+      success: false,
+      message,
+      errorMessages,
+      data: [],
+      stack: config.node_env !== "production" ? error?.stack : undefined,
+    });
+  }
+
+  console.log("responseMode =", responseMode);
+
+  // STRICT MODE (default fallback)
+  return res.status(statusCode).json({
     success: false,
     message,
     errorMessages,
     stack: config.node_env !== "production" ? error?.stack : undefined,
   });
+
+
 };
 
 export default globalErrorHandler;

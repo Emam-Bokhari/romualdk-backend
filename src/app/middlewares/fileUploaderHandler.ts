@@ -248,10 +248,10 @@ const fileUploadHandler = () => {
     },
     fileFilter: filterFilter,
   }).fields([
-    { name: "image", maxCount: 10 },
+    { name: "image", maxCount: 14 },
     { name: "profileImage", maxCount: 1 },
     { name: "childImage", maxCount: 1 },
-    { name: "images", maxCount: 10 },
+    { name: "images", maxCount: 14 },
     { name: "seatingPlan", maxCount: 10 },
     { name: "nidFrontPic", maxCount: 1 },
     { name: "nidBackPic", maxCount: 1 },

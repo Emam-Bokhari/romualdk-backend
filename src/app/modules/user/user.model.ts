@@ -10,11 +10,11 @@ const userSchema = new Schema<IUser, UserModal>(
   {
     firstName: {
       type: String,
-      // required: true,
+      required: true,
     },
     lastName: {
       type: String,
-      // required: true,
+      required: true,
     },
     role: {
       type: String,
@@ -28,12 +28,12 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     phone: {
       type: String,
-      // required: true,
-      // unique: true,
+      required: true,
+      unique: true,
     },
     countryCode: {
       type: String,
-      // required: true,
+      required: true,
     },
     email: {
       type: String,
@@ -44,6 +44,7 @@ const userSchema = new Schema<IUser, UserModal>(
     profileImage: {
       type: String,
       required: false,
+      default: "",
     },
     nidFrontPic: {
       type: String,
@@ -69,12 +70,20 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     dateOfBirth: {
       type: String,
-      // required: true,
+      required: true,
     },
     gender: {
       type: String,
       enum: Object.values(GENDER),
       required: false,
+    },
+    lastSmsResourceId: {
+      type: String,
+      required: false,
+    },
+    isOtpDelivered: {
+      type: Boolean,
+      default: false,
     },
     city: {
       type: String,
@@ -191,12 +200,15 @@ userSchema.statics.isMatchPassword = async (
 //check user
 userSchema.pre("save", async function (next) {
   if (this.isNew) {
-    const isExist = await User.findOne({ phone: this.phone });
-    if (isExist) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        "Phone number already exist!"
-      );
+    
+    if (this.phone) {
+      const isExist = await User.findOne({ phone: this.phone });
+      if (isExist) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          "Phone number already exists!"
+        );
+      }
     }
 
     // password hash
@@ -207,6 +219,7 @@ userSchema.pre("save", async function (next) {
       );
     }
   } else {
+    
     if (this.isModified("password") && this.password) {
       this.password = await bcrypt.hash(
         this.password,

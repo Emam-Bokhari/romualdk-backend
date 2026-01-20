@@ -2,6 +2,7 @@ import ApiError from "../../../errors/ApiErrors";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { CarServices } from "./car.service";
+import { normalizeCarVerificationStatus } from "./car.utils";
 
 const createCar = catchAsync(async (req, res) => {
   const { id: userId } = req.user;
@@ -33,6 +34,7 @@ const getAllCars = catchAsync(async (req, res) => {
     rating,
     latitude,
     longitude,
+    withDriver,
     maxDistance,
     date,
     time,
@@ -54,6 +56,7 @@ const getAllCars = catchAsync(async (req, res) => {
     rating,
     latitude,
     longitude,
+    withDriver,
     maxDistance,
     date,
     time,
@@ -73,15 +76,37 @@ const getAllCars = catchAsync(async (req, res) => {
   });
 });
 
-const getOwnCars = catchAsync(async (req, res) => {
-  const { id: userId } = req.user;
+const getRecentCars = catchAsync(
+  async (req, res) => {
+    const userId = req.user?.id;
 
-  const result = await CarServices.getOwnCarsFromDB(userId);
+    const result = await CarServices.getRecentCarsFromDB(userId);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Recent cars retrieved successfully",
+      data: result.data,
+      meta: result.meta,
+    });
+  }
+);
+
+
+const getOwnCars = catchAsync(async (req, res) => {
+  const { verificationStatus } = req.query;
+
+  const result = await CarServices.getOwnCarsFromDB({
+    userId: req.user.id,
+    verificationStatus: normalizeCarVerificationStatus(
+      verificationStatus as string
+    ),
+  });
 
   sendResponse(res, {
-    success: true,
     statusCode: 200,
-    message: "Own cars data are retrieved successfully",
+    success: true,
+    message: "Cars retrieved successfully",
     data: result,
   });
 });
@@ -233,6 +258,32 @@ const getSuggestedCars = catchAsync(async (req, res) => {
   });
 });
 
+const getCarsByDestination = catchAsync(
+  async (req, res) => {
+    const { destinationId } = req.params;
+
+    if (!destinationId) {
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: "Destination ID is required",
+      });
+    }
+
+    // fetch destination & cars
+    const result = await CarServices.getCarsByDestinationFromDB(destinationId);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Cars fetched successfully by destination",
+      data: result,
+    });
+  }
+);
+
+
+
 export const CarControllers = {
   createCar,
   getAllCars,
@@ -245,4 +296,6 @@ export const CarControllers = {
   getAllCarsForVerifications,
   updateCarVerificationStatusById,
   getSuggestedCars,
+  getRecentCars,
+  getCarsByDestination,
 };

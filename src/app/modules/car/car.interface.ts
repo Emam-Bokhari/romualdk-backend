@@ -12,7 +12,7 @@ export enum AVAILABLE_DAYS {
 
 export enum FUEL_TYPE {
   PETROL = "PETROL",
-  DISEL = "DISEL",
+  DIESEL = "DIESEL",
   ELECTRIC = "ELECTRIC",
   HYBRID = "HYBRID",
 }
@@ -52,6 +52,7 @@ export interface ICar {
   verificationStatus: CAR_VERIFICATION_STATUS;
   shortDescription: string;
   licensePlate: string;
+  vin?: string;
   carRegistrationPaperFrontPic: string;
   carRegistrationPaperBackPic: string;
   images: string[];

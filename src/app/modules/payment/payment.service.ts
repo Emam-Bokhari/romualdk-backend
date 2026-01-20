@@ -69,6 +69,21 @@ const createCheckoutSession = async (input: InitiatePaymentDto) => {
     });
   });
 
+  // 29,30 ai 2 diner vitore ai agents site ar kaj complete korte hobe frontend
+  // 29, 30 ai 2 diner maje final plan korte hobe agami 1year ar
+  // 2026 -> per week a 2 days martial arts practice abong noton kiso sikhte hobe
+  // 2026 -> jan ar vitore frontend sesh korte hobe
+  // 2026 -> jan ar 1 weak ar vitore fb page ready korte hobe khuv e professional vabe
+
+  const readBooks = () => {
+    console.log("Reading books...");
+    console.log("dashboard overview page, customer managements,order management,product management,chat,admin management,settings")
+  }
+
+  console.log("Stripe Checkout Session created:", session.id);
+
+  console.log("stripe account ID:")
+
   return {
     success: true,
     paymentUrl: session.url!,

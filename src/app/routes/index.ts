@@ -16,6 +16,8 @@ import { paymentRoutes } from "../modules/payment/payment.routes";
 import { stripeCEARoutes } from "../modules/stripeCEA/stripeCEA.routes";
 import { transactionRoutes } from "../modules/transaction/transaction.routes";
 import { HostDashboardRoutes } from "../modules/hostDashboard/hostDashboard.route";
+import { DestinationRoutes } from "../modules/destination/destination.route";
+import { SmsLogRoutes } from "../modules/smsLog/smsLog.route";
 
 const router = express.Router();
 
@@ -88,7 +90,15 @@ const apiRoutes = [
   {
     path: "/host-dashboard",
     route: HostDashboardRoutes,
-  }
+  },
+  {
+    path: "/destinations",
+    route: DestinationRoutes,
+  },
+  {
+    path: "/sms-logs",
+    route: SmsLogRoutes,
+  },  
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));

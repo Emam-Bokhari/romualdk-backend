@@ -103,6 +103,12 @@ const CarSchema = new Schema<ICar>(
       uppercase: true,
       trim: true,
     },
+    vin: {
+      type: String,
+      required: false,
+      unique: true,
+      trim: true,
+    },
     carRegistrationPaperFrontPic: {
       type: String,
       required: true,
@@ -256,6 +262,7 @@ CarSchema.index({ pickupPoint: "2dsphere" });
 CarSchema.index({ userId: 1, isActive: 1 });
 CarSchema.index({ city: 1, isActive: 1 });
 CarSchema.index({ licensePlate: 1 });
+CarSchema.index({ vin: 1 });
 
 // Model
 export const Car = model<ICar>("Car", CarSchema);
