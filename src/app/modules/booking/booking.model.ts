@@ -16,7 +16,7 @@ const bookingSchema = new Schema<IBooking>(
       enum: Object.values(BOOKING_STATUS),
       default: BOOKING_STATUS.PENDING,
     },
-    carStatus: { type: String, enum: Object.values(CAR_STATUS)},
+    carStatus: { type: String, enum: Object.values(CAR_STATUS), default: CAR_STATUS.PENDING },
     type: { type: String, enum: Object.values(Driver_STATUS), required: false },  
     checkIn: { type: Boolean, default: false },
     checkOut: { type: Boolean, default: false},

@@ -18,6 +18,7 @@ export enum CAR_STATUS {
   ONGOING = "ongoing",
   COMPLETED = "completed",
   CANCELLED = "cancelled",
+  PENDING = "pending",
 }
 
 export interface IBooking {
