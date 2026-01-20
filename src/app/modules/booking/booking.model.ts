@@ -3,6 +3,7 @@ import { IBooking, BOOKING_STATUS, Driver_STATUS, CAR_STATUS } from "./booking.i
 
 const bookingSchema = new Schema<IBooking>(
   {
+    bookingCode: { type: String, required: true, unique: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     hostId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     carId: { type: Schema.Types.ObjectId, ref: "Car", required: true },

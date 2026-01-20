@@ -22,6 +22,7 @@ export enum CAR_STATUS {
 
 export interface IBooking {
   _id: Types.ObjectId;
+  bookingCode: string;
   carId: Types.ObjectId;
   userId: Types.ObjectId;
   hostId: Types.ObjectId;

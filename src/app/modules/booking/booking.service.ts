@@ -10,6 +10,7 @@ import Transaction from "../payment/transaction.model";
 import { calculateRefundPercentage } from "../../../util/refundCalculation";
 import { PaymentService } from "../payment/payment.service";
 import QueryBuilder from "../../builder/queryBuilder";
+import { getNextBookingCode } from "../../../util/bookigIdGenarator";
  
 // -------- Create Booking ----------
 const createBooking = async (body: any, userId: string) => {
@@ -25,8 +26,9 @@ const createBooking = async (body: any, userId: string) => {
   if (type === Driver_STATUS.WITHDRIVER) {
     totalAmount += DRIVER_FIXED_PRICE;
   }
- 
+  const code = await getNextBookingCode();
   const booking = await Booking.create({
+    bookingCode: code,
     carId,
     userId,
     hostId: car.userId,
@@ -67,6 +69,7 @@ const getUserBookings = async (userId: string, status?: string) => {
  
   // ---------- STEP 1: Fetch bookings ----------
   const bookings = await Booking.find(filter)
+    .populate("userId")
     .populate("carId")
     .populate("hostId")
     .populate("transactionId")
