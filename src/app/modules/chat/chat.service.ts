@@ -1,34 +1,69 @@
 import { Chat } from "./chat.model";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { User } from "../user/user.model";
 import { Message } from "../message/message.model";
 import ApiError from "../../../errors/ApiErrors";
 
+// const createChatIntoDB = async (participants: string[]) => {
+//   const isExistChat = await Chat.findOne({
+//     participants: { $all: participants },
+//     isDeleted: { $ne: true },
+//   }).populate("participants"); ;
+
+//   if (isExistChat) {
+//     return isExistChat;
+//   }
+//   const newChat = await Chat.create({
+//     participants: participants,
+//     lastMessage: null,
+//   });
+//   if (!newChat) {
+//     throw new Error("Failed to create chat");
+//   }
+
+//   //@ts-ignore
+//   const io = global.io;
+//   newChat.participants.forEach((participant) => {
+//     //@ts-ignore
+//     io.emit(`newChat::${participant._id}`, newChat);
+//   });
+//   return newChat;
+// };
+
 const createChatIntoDB = async (participants: string[]) => {
+  // Check if chat already exists
   const isExistChat = await Chat.findOne({
-    participants: { $all: participants },
+    participants: { $all: participants.map(id => new Types.ObjectId(id)) },
     isDeleted: { $ne: true },
-  });
+  }).populate("participants"); // <-- populate here if it exists
 
   if (isExistChat) {
     return isExistChat;
   }
+
+  // Create new chat
   const newChat = await Chat.create({
-    participants: participants,
+    participants: participants.map(id => new Types.ObjectId(id)),
     lastMessage: null,
   });
+
   if (!newChat) {
     throw new Error("Failed to create chat");
   }
 
-  //@ts-ignore
+  // Populate participants before emitting
+  const populatedChat = await newChat.populate("participants");
+
+  // Emit new chat event to each participant
+  // @ts-ignore
   const io = global.io;
-  newChat.participants.forEach((participant) => {
-    //@ts-ignore
-    io.emit(`newChat::${participant._id}`, newChat);
+  populatedChat.participants.forEach((participant: any) => {
+    io.emit(`newChat::${participant._id}`, populatedChat);
   });
-  return newChat;
+
+  return populatedChat;
 };
+
 
 const markChatAsRead = async (userId: string, chatId: string) => {
   return Chat.findByIdAndUpdate(

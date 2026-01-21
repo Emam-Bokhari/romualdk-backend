@@ -972,6 +972,7 @@ const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
               reviewId: "$_id",
               ratingValue: 1,
               feedback: 1,
+              createdAt: 1,
               fromUser: {
                 _id: 1,
                 firstName: 1,
