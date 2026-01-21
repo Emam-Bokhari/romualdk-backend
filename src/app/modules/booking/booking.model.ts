@@ -3,6 +3,7 @@ import { IBooking, BOOKING_STATUS, Driver_STATUS, CAR_STATUS } from "./booking.i
 
 const bookingSchema = new Schema<IBooking>(
   {
+    bookingCode: { type: String, required: true, unique: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     hostId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     carId: { type: Schema.Types.ObjectId, ref: "Car", required: true },
@@ -15,7 +16,7 @@ const bookingSchema = new Schema<IBooking>(
       enum: Object.values(BOOKING_STATUS),
       default: BOOKING_STATUS.PENDING,
     },
-    carStatus: { type: String, enum: Object.values(CAR_STATUS)},
+    carStatus: { type: String, enum: Object.values(CAR_STATUS), default: CAR_STATUS.PENDING },
     type: { type: String, enum: Object.values(Driver_STATUS), required: false },  
     checkIn: { type: Boolean, default: false },
     checkOut: { type: Boolean, default: false},
