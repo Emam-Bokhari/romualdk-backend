@@ -30,19 +30,21 @@ const getHostDashboardData = async (hostId: string, year: number) => {
     upcomingPayouts,
   ] = await Promise.all([
     // 1. Profile (name + location)
-User.findById(
-  objectHostId,
-  {
-    firstName: 1,
-    lastName: 1,
-    profileImage: 1,
-    location: {
-      "location.city": 1,
-      "location.country": 1,
-    }
-  }
-).lean()
-,
+    User.findById(
+      objectHostId,
+      {
+        firstName: 1,
+        lastName: 1,
+        profileImage: 1,
+        location: {
+          "location.city": 1,
+          "location.country": 1,
+        },
+        city: 1,
+        country: 1,
+      }
+    ).lean()
+    ,
 
     // 2. Total Earnings (all time succeeded hostReceiptAmount)
     Transaction.aggregate<{ total: number }>([
@@ -146,15 +148,19 @@ User.findById(
 
 
   return {
-profile: {
-  name: profile
-    ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() || "Unknown"
-    : "Unknown",
-  location: profile?.location?.city && profile?.location?.country
-    ? `${profile.location.city}, ${profile.location.country}`
-    : "Unknown",
-    profileImage: profile?.profileImage || null,
-},
+    profile: {
+      name: profile
+        ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() || "Unknown"
+        : "Unknown",
+
+      location:
+        profile?.city && profile?.country
+          ? `${profile.city}, ${profile.country}`
+          : "Unknown",
+
+      profileImage: profile?.profileImage || null,
+    },
+
     summary: {
       totalEarnings: totalEarnings[0]?.total || 0,
       earningsThisMonth: thisMonthEarnings[0]?.total || 0,
@@ -162,10 +168,12 @@ profile: {
       totalVehicles,
       activeVehicles,
     },
+
     revenueStatistics,
     recentPayouts,
     upcomingPayouts,
   };
+
 };
 
 // Helper: Recent & Upcoming Payouts

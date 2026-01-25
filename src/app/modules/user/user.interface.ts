@@ -18,8 +18,9 @@ export type IUser = {
   dateOfBirth: string;
   gender?: GENDER;
   lastSmsResourceId?: string; // optional
-  isOtpDelivered?: boolean; 
+  isOtpDelivered?: boolean;
   city?: string;
+  country?: string;
   verified: boolean;
   status: STATUS;
   location?: {

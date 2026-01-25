@@ -89,6 +89,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       required: false,
     },
+    country: {
+      type: String,
+      required: false,
+    },
     status: {
       type: String,
       enum: Object.values(STATUS),
@@ -200,7 +204,7 @@ userSchema.statics.isMatchPassword = async (
 //check user
 userSchema.pre("save", async function (next) {
   if (this.isNew) {
-    
+
     if (this.phone) {
       const isExist = await User.findOne({ phone: this.phone });
       if (isExist) {
@@ -219,7 +223,7 @@ userSchema.pre("save", async function (next) {
       );
     }
   } else {
-    
+
     if (this.isModified("password") && this.password) {
       this.password = await bcrypt.hash(
         this.password,
