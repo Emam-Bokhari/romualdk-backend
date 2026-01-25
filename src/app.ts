@@ -29,7 +29,7 @@ app.use(Morgan.errorHandler);
 //body parser
 app.use(
   cors({
-    origin: ["http://10.10.7.46:30011", "http://10.10.7.41:5003"],
+    origin: ["http://10.10.7.46:30011", "http://10.10.7.41:5003","https://dashboard.goconnecte.com"],
     credentials: true,
   }),
 );
