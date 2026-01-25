@@ -1,5 +1,5 @@
 import { Chat } from "./chat.model";
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 import { User } from "../user/user.model";
 import { Message } from "../message/message.model";
 import ApiError from "../../../errors/ApiErrors";
