@@ -7,9 +7,10 @@ import { logger } from "../shared/logger";
 const superUser = {
   firstName: "Super", // put client first name
   lastName: "Admin", // put client last name
+  countryCode:"+880",
   role: USER_ROLES.SUPER_ADMIN,
   dateOfBirth: "2000-01-01",
-  phone: "+88019158842073",
+  phone: "19158842073",
   email: config.admin.email,
   password: config.admin.password,
   verified: true,
