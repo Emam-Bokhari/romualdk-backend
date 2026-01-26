@@ -37,15 +37,23 @@ const readNotificationToDB = async (
 const adminNotificationFromDB = async (query: any) => {
   const baseQuery = Notification.find({ type: "ADMIN" });
 
+  const unreadCount = await Notification.countDocuments({
+    type: "ADMIN",
+    read: false,
+  });
+
   const queryBuilder = new QueryBuilder(baseQuery, query).paginate();
 
   const result = await queryBuilder.modelQuery;
 
-  const meta = await queryBuilder.countTotal()
+  const meta = await queryBuilder.countTotal();
 
   return {
     data: result,
-    meta,
+    meta: {
+      ...meta,
+      unreadCount,
+    },
   };
 };
 
