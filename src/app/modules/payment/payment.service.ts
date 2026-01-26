@@ -160,21 +160,16 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
       });
 
       // NOTIFICATION ADMIN(s)
-      const admins = await User.find({
-        role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
-      }).select("_id");
+      const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
 
-      await Promise.all(
-        admins.map((admin) =>
-          sendNotifications({
-            text: `Payment completed for booking #${booking._id}`,
-            receiver: admin._id.toString(),
-            type: NOTIFICATION_TYPE.ADMIN,
-            referenceId: booking._id.toString(),
-          }),
-        ),
-      );
-
+      if (admin) {
+        await sendNotifications({
+          text: `Payment completed for booking #${booking._id}`,
+          receiver: admin._id.toString(),
+          type: NOTIFICATION_TYPE.ADMIN,
+          referenceId: booking._id.toString(),
+        });
+      }
       return true;
     }
   }
@@ -213,20 +208,16 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
     });
 
     // // NOTIFICATION ADMIN(s)
-    const admins = await User.find({
-      role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
-    }).select("_id");
+    const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
 
-    await Promise.all(
-      admins.map((admin) =>
-        sendNotifications({
-          text: `Refund completed for booking #${booking._id}`,
-          receiver: admin._id.toString(),
-          type: NOTIFICATION_TYPE.ADMIN,
-          referenceId: booking._id.toString(),
-        }),
-      ),
-    );
+    if (admin) {
+      await sendNotifications({
+        text: `Refund completed for booking #${booking._id}`,
+        receiver: admin._id.toString(),
+        type: NOTIFICATION_TYPE.ADMIN,
+        referenceId: booking._id.toString(),
+      });
+    }
 
     return true;
   }
@@ -357,20 +348,17 @@ const payoutToHost = async (bookingId: string) => {
   });
 
   // NOTIFICATIONS ADMIN(s)
-  const admins = await User.find({
-    role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
-  }).select("_id");
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
 
-  await Promise.all(
-    admins.map((admin) =>
-      sendNotifications({
-        text: `Host payout completed for booking #${booking._id}`,
-        receiver: admin._id.toString(),
-        type: NOTIFICATION_TYPE.ADMIN,
-        referenceId: booking._id.toString(),
-      }),
-    ),
-  );
+  if (admin) {
+    await sendNotifications({
+      text: `Host payout completed for booking #${booking._id}`,
+      receiver: admin._id.toString(),
+      type: NOTIFICATION_TYPE.ADMIN,
+      referenceId: booking._id.toString(),
+    });
+  }
+
 };
 
 // ================ Refund  =================
@@ -424,21 +412,19 @@ const refundBookingPayment = async (
     referenceId: booking._id.toString(),
   });
 
-  // NOTIFICATIONS ADMIN(s)
-  const admins = await User.find({
-    role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
-  }).select("_id");
+  // NOTIFICATIONS ADMIN
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
 
-  await Promise.all(
-    admins.map((admin) =>
-      sendNotifications({
-        text: `Refund initiated for booking #${booking._id}`,
-        receiver: admin._id.toString(),
-        type: NOTIFICATION_TYPE.ADMIN,
-        referenceId: booking._id.toString(),
-      }),
-    ),
-  );
+  if (admin) {
+    await sendNotifications({
+      text: `Refund initiated for booking #${booking._id}`,
+      receiver: admin._id.toString(),
+      type: NOTIFICATION_TYPE.ADMIN,
+      referenceId: booking._id.toString(),
+    });
+  }
+
+
 
   //  Optional but useful response
   return {

@@ -6,10 +6,7 @@ import { Notification } from "./notification.model";
 const getNotificationFromDB = async (
   user: JwtPayload,
 ): Promise<INotification> => {
-  const result = await Notification.find({ receiver: user.id }).populate({
-    path: "sender",
-    select: "name profile",
-  });
+  const result = await Notification.find({ receiver: user.id });
 
   const unreadCount = await Notification.countDocuments({
     receiver: user.id,

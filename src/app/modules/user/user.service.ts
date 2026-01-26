@@ -239,9 +239,9 @@ const createUserToDB = async (payload: Partial<IUser>) => {
   });
 
   // Notify ADMIN(s)
-  const admins = await User.find({ role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] } }).select("_id");
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
 
-  for (const admin of admins) {
+  if (admin) {
     await sendNotifications({
       text: `New user registered: ${createUser.phone}`,
       receiver: admin._id.toString(),
@@ -380,9 +380,17 @@ const createHostRequestToDB = async (
   });
 
   // Notify ADMIN(s)
-  const admins = await User.find({ role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] } }).select("_id");
+  // const admins = await User.find({ role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] } }).select("_id");
 
-  for (const admin of admins) {
+  // for (const admin of admins) {
+  //   await sendNotifications({
+
+  //   });
+  // }
+
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+
+  if (admin) {
     await sendNotifications({
       text: `New host request submitted by user (${user.phone || user._id})`,
       receiver: admin._id.toString(),
@@ -606,20 +614,16 @@ const deleteProfileFromDB = async (id: string) => {
   }
 
   // ---------------- Notify ADMIN & SUPER_ADMIN ----------------
-  const admins = await User.find({
-    role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
-  }).select("_id");
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
 
-  await Promise.all(
-    admins.map((admin) =>
-      sendNotifications({
-        text: `User account deleted (${deletedUser.phone || deletedUser._id})`,
-        receiver: admin._id.toString(),
-        type: NOTIFICATION_TYPE.ADMIN,
-        referenceId: deletedUser._id.toString(),
-      }),
-    ),
-  );
+  if (admin) {
+    await sendNotifications({
+      text: `User account deleted (${deletedUser.phone || deletedUser._id})`,
+      receiver: admin._id.toString(),
+      type: NOTIFICATION_TYPE.ADMIN,
+      referenceId: deletedUser._id.toString(),
+    });
+  }
 
   return deletedUser;
 };

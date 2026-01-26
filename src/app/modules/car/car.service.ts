@@ -58,20 +58,16 @@ const createCarToDB = async (userId: string, payload: ICar) => {
     });
 
     //  Notify ADMIN & SUPER_ADMIN
-    const admins = await User.find({
-      role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
-    }).select("_id");
+    const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
 
-    await Promise.all(
-      admins.map((admin) =>
-        sendNotifications({
-          text: `New car added by host (${user.phone || user._id})`,
-          receiver: admin._id.toString(),
-          type: NOTIFICATION_TYPE.ADMIN,
-          referenceId: result._id.toString(),
-        }),
-      ),
-    );
+    if (admin) {
+      await sendNotifications({
+        text: `New car added by host (${user.phone || user._id})`,
+        receiver: admin._id.toString(),
+        type: NOTIFICATION_TYPE.ADMIN,
+        referenceId: result._id.toString(),
+      });
+    }
 
     return result;
   } catch (error: any) {
@@ -722,21 +718,18 @@ const deleteCarByIdFromDB = async (userId: string, id: string) => {
     referenceId: result._id.toString(),
   });
 
-  // 2️⃣ Notify ADMIN & SUPER_ADMIN
-  const admins = await User.find({
-    role: { $in: ["ADMIN", "SUPER_ADMIN"] },
-  }).select("_id");
+  // Notify ADMIN & SUPER_ADMIN
 
-  await Promise.all(
-    admins.map((admin) =>
-      sendNotifications({
-        text: `Car deleted by host (${user.phone || user._id})`,
-        receiver: admin._id.toString(),
-        type: NOTIFICATION_TYPE.ADMIN,
-        referenceId: result._id.toString(),
-      }),
-    ),
-  );
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+
+  if (admin) {
+    await sendNotifications({
+      text: `Car deleted by host (${user.phone || user._id})`,
+      receiver: admin._id.toString(),
+      type: NOTIFICATION_TYPE.ADMIN,
+      referenceId: result._id.toString(),
+    });
+  }
 
   return result;
 };

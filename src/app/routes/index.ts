@@ -18,6 +18,7 @@ import { transactionRoutes } from "../modules/transaction/transaction.routes";
 import { HostDashboardRoutes } from "../modules/hostDashboard/hostDashboard.route";
 import { DestinationRoutes } from "../modules/destination/destination.route";
 import { SmsLogRoutes } from "../modules/smsLog/smsLog.route";
+import { NotificationRoutes } from "../modules/notification/notification.routes";
 
 const router = express.Router();
 
@@ -98,7 +99,11 @@ const apiRoutes = [
   {
     path: "/sms-logs",
     route: SmsLogRoutes,
-  },  
+  },
+  {
+    path: "/notifications",
+    route: NotificationRoutes
+  }
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));
