@@ -32,13 +32,14 @@ const readNotification = catchAsync(async (req: Request, res: Response) => {
 
 const adminNotificationFromDB = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await NotificationService.adminNotificationFromDB();
+    const result = await NotificationService.adminNotificationFromDB(req.query);
 
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
       message: "Notifications Retrieved Successfully",
-      data: result,
+      data: result.data,
+      meta: result.meta,
     });
   },
 );
