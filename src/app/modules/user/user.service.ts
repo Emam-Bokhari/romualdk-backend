@@ -13,6 +13,8 @@ import { PipelineStage, Types } from "mongoose";
 import { afrikSmsService } from "../../../helpers/afrikSms.service";
 import { getTargetLocation } from "../car/car.utils";
 import { SMSLog } from "../smsLog/smsLog.model";
+import { sendNotifications } from "../../../helpers/notificationsHelper";
+import { NOTIFICATION_TYPE } from "../notification/notification.constant";
 
 const createAdminToDB = async (payload: any): Promise<IUser> => {
 
@@ -224,6 +226,31 @@ const createUserToDB = async (payload: Partial<IUser>) => {
   } catch (error) {
     console.error("SMS sending failed:", error);
   }
+
+
+  // ---------------- NOTIFICATIONS ----------------
+
+  // Notify USER
+  await sendNotifications({
+    text: "Welcome! Your account has been created successfully.",
+    receiver: createUser._id.toString(),
+    type: NOTIFICATION_TYPE.USER,
+    referenceId: createUser._id.toString(),
+  });
+
+  // Notify ADMIN(s)
+  const admins = await User.find({ role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] } }).select("_id");
+
+  for (const admin of admins) {
+    await sendNotifications({
+      text: `New user registered: ${createUser.phone}`,
+      receiver: admin._id.toString(),
+      type: NOTIFICATION_TYPE.ADMIN,
+      referenceId: createUser._id.toString(),
+    });
+  }
+
+  // --- Create Token ---
 
   const createToken = jwtHelper.createToken(
     { id: createUser._id, phone: createUser.phone, role: createUser.role },
