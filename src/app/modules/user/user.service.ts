@@ -592,45 +592,38 @@ const deleteUserByIdFromD = async (id: string) => {
   return result;
 };
 
+
 const deleteProfileFromDB = async (id: string) => {
   const isExistUser = await User.isExistUserById(id);
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
-  const result = await User.findByIdAndDelete(id);
+  const deletedUser = await User.findByIdAndDelete(id);
 
-  if (!result) {
+  if (!deletedUser) {
     throw new ApiError(400, "Failed to delete this user");
   }
-  return result;
+
+  // ---------------- Notify ADMIN & SUPER_ADMIN ----------------
+  const admins = await User.find({
+    role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
+  }).select("_id");
+
+  await Promise.all(
+    admins.map((admin) =>
+      sendNotifications({
+        text: `User account deleted (${deletedUser.phone || deletedUser._id})`,
+        receiver: admin._id.toString(),
+        type: NOTIFICATION_TYPE.ADMIN,
+        referenceId: deletedUser._id.toString(),
+      }),
+    ),
+  );
+
+  return deletedUser;
 };
 
-// const getAllHostsFromDB = async (query: any) => {
-//   const baseQuery = User.find({ hostStatus: HOST_STATUS.APPROVED });
-
-
-
-
-//   const queryBuilder = new QueryBuilder(baseQuery, query)
-//   .search(["firstName", "lastName", "fullName", "email", "phone"])
-//   .sort()
-//   .fields()
-//   .filter()
-//   .paginate();
-
-//   const hosts = await queryBuilder.modelQuery;
-
-
-//   const meta = await queryBuilder.countTotal();
-
-//   if (!hosts) throw new ApiError(404, "No hosts are found in the database");
-
-//   return {
-//     data: hosts,
-//     meta,
-//   };
-// };
 
 const getAllHostsFromDB = async (query: any) => {
   const page = Number(query.page) || 1;
