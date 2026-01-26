@@ -5,7 +5,6 @@ import { User } from "./user.model";
 import { StatusCodes } from "http-status-codes";
 import ApiError from "../../../errors/ApiErrors";
 import unlinkFile from "../../../shared/unlinkFile";
-import { twilioService } from "../twilioService/sendOtpWithVerify";
 import { jwtHelper } from "../../../helpers/jwtHelper";
 import config from "../../../config";
 import QueryBuilder from "../../builder/queryBuilder";
@@ -73,116 +72,6 @@ const deleteAdminFromDB = async (id: any) => {
 
   return isExistAdmin;
 };
-
-// const createUserToDB = async (payload: Partial<IUser>) => {
-//   const requiredFields = [
-//     "firstName",
-//     "lastName",
-//     "countryCode",
-//     "dateOfBirth",
-//     "phone",
-//     "password",
-//   ];
-
-//   const missingFields = requiredFields.filter(
-//     (field) => !payload[field as keyof IUser],
-//   );
-
-//   if (missingFields.length > 0) {
-//     throw new ApiError(
-//       400,
-//       `Missing required fields: ${missingFields.join(", ")}`,
-//     );
-//   }
-
-//   const createUser = await User.create(payload);
-//   console.log(payload, "Payload");
-//   if (!createUser)
-//     throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create user");
-
-//   // Send OTP using Twilio Verify
-//   await twilioService.sendOTPWithVerify(
-//     createUser.phone,
-//     createUser.countryCode,
-//   );
-
-//   const createToken = jwtHelper.createToken(
-//     {
-//       id: createUser._id,
-//       phone: createUser.phone,
-//       role: createUser.role,
-//     },
-//     config.jwt.jwt_secret as Secret,
-//     config.jwt.jwt_expire_in as string,
-//   );
-
-//   const result = {
-//     token: createToken,
-//     user: createUser,
-//   };
-
-//   return result;
-// };
-
-// const createUserToDB = async (payload: Partial<IUser>) => {
-//   const requiredFields = [
-//     // "firstName",
-//     "countryCode",
-//     "phone",
-//     // "password",
-//   ];
-
-//   const missingFields = requiredFields.filter(
-//     (field) => !payload[field as keyof IUser]
-//   );
-
-//   if (missingFields.length > 0) {
-//     throw new ApiError(400, `Missing required fields: ${missingFields.join(", ")}`);
-//   }
-
-//   // generate numeric OTP
-//   const otp = afrikSmsService.generateOTP();
-//   const expireAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-//   payload.authentication = {
-//     oneTimeCode: otp,
-//     expireAt: expireAt,
-//     isResetPassword: false
-//   };
-
-//   const createUser = await User.create(payload);
-
-//   if (!createUser)
-//     throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create user");
-
-//   const smsMessage = `Your verification code is ${otp}. Valid for 5 minutes.`;
-
-//   try {
-//     await afrikSmsService.sendSMS(
-//       createUser.phone,
-//       createUser.countryCode,
-//       smsMessage
-//     );
-//   } catch (error) {
-//     console.error("SMS Sending failed:", error);
-
-//   }
-
-//   const createToken = jwtHelper.createToken(
-//     {
-//       id: createUser._id,
-//       phone: createUser.phone,
-//       role: createUser.role,
-//     },
-//     config.jwt.jwt_secret as Secret,
-//     config.jwt.jwt_expire_in as string,
-//   );
-
-//   return {
-//     token: createToken,
-//     user: createUser,
-//   };
-// };
 
 
 const createUserToDB = async (payload: Partial<IUser>) => {
@@ -333,6 +222,66 @@ const switchProfileToDB = async (
   return result;
 };
 
+// const createHostRequestToDB = async (
+//   userId: string,
+//   payload: IHostRequestInput,
+// ) => {
+//   const user = await User.findById(userId);
+//   if (!user) throw new ApiError(404, "No user is found for this ID");
+
+//   if (user.hostStatus === HOST_STATUS.APPROVED)
+//     throw new ApiError(400, "User is already a host");
+
+//   if (!payload.nidFrontPic || !payload.nidBackPic) {
+//     throw new ApiError(
+//       400,
+//       "Nid front picture and nid back picture is required",
+//     );
+//   }
+
+//   if (!payload.drivingLicenseFrontPic || !payload.drivingLicenseBackPic) {
+//     throw new ApiError(
+//       400,
+//       "Driving license front and back picture is required",
+//     );
+//   }
+
+//   user.nidFrontPic = payload.nidFrontPic;
+//   user.nidBackPic = payload.nidBackPic;
+//   if (payload.drivingLicenseFrontPic)
+//     user.drivingLicenseFrontPic = payload.drivingLicenseFrontPic;
+//   if (payload.drivingLicenseBackPic)
+//     user.drivingLicenseBackPic = payload.drivingLicenseBackPic;
+
+//   // host PENDING
+//   user.hostStatus = HOST_STATUS.PENDING;
+
+//   await user.save();
+
+//   // ---------------- NOTIFICATIONS ----------------
+
+//   //  Notify USER
+//   await sendNotifications({
+//     text: "Your host request has been submitted and is under review.",
+//     receiver: user._id.toString(),
+//     type: NOTIFICATION_TYPE.USER,
+//     referenceId: user._id.toString(),
+//   });
+
+//   const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+
+//   if (admin) {
+//     await sendNotifications({
+//       text: `New host request submitted by user (${user.phone || user._id})`,
+//       receiver: admin._id.toString(),
+//       type: NOTIFICATION_TYPE.ADMIN,
+//       referenceId: user._id.toString(),
+//     });
+//   }
+
+//   return user;
+// };
+
 const createHostRequestToDB = async (
   userId: string,
   payload: IHostRequestInput,
@@ -340,53 +289,68 @@ const createHostRequestToDB = async (
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "No user is found for this ID");
 
-  if (user.hostStatus === HOST_STATUS.APPROVED)
+  if (user.hostStatus === HOST_STATUS.APPROVED) {
     throw new ApiError(400, "User is already a host");
+  }
 
-  if (!payload.nidFrontPic || !payload.nidBackPic) {
+  const hasNID =
+    payload.nidFrontPic && payload.nidBackPic;
+
+  const hasDrivingLicense =
+    payload.drivingLicenseFrontPic &&
+    payload.drivingLicenseBackPic;
+
+  //  At least one must exist
+  if (!hasNID && !hasDrivingLicense) {
     throw new ApiError(
       400,
-      "Nid front picture and nid back picture is required",
+      "Either NID (front & back) or Driving License (front & back) is required",
     );
   }
 
-  if (!payload.drivingLicenseFrontPic || !payload.drivingLicenseBackPic) {
+  //  Prevent partial upload
+  if (
+    (payload.nidFrontPic && !payload.nidBackPic) ||
+    (!payload.nidFrontPic && payload.nidBackPic)
+  ) {
     throw new ApiError(
       400,
-      "Driving license front and back picture is required",
+      "Both NID front and back pictures are required",
     );
   }
 
-  user.nidFrontPic = payload.nidFrontPic;
-  user.nidBackPic = payload.nidBackPic;
-  if (payload.drivingLicenseFrontPic)
+  if (
+    (payload.drivingLicenseFrontPic && !payload.drivingLicenseBackPic) ||
+    (!payload.drivingLicenseFrontPic && payload.drivingLicenseBackPic)
+  ) {
+    throw new ApiError(
+      400,
+      "Both driving license front and back pictures are required",
+    );
+  }
+
+  // ---------------- SAVE DATA ----------------
+  if (hasNID) {
+    user.nidFrontPic = payload.nidFrontPic;
+    user.nidBackPic = payload.nidBackPic;
+  }
+
+  if (hasDrivingLicense) {
     user.drivingLicenseFrontPic = payload.drivingLicenseFrontPic;
-  if (payload.drivingLicenseBackPic)
     user.drivingLicenseBackPic = payload.drivingLicenseBackPic;
+  }
 
-  // host PENDING
   user.hostStatus = HOST_STATUS.PENDING;
-
   await user.save();
 
   // ---------------- NOTIFICATIONS ----------------
 
-  //  Notify USER
   await sendNotifications({
     text: "Your host request has been submitted and is under review.",
     receiver: user._id.toString(),
     type: NOTIFICATION_TYPE.USER,
     referenceId: user._id.toString(),
   });
-
-  // Notify ADMIN(s)
-  // const admins = await User.find({ role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] } }).select("_id");
-
-  // for (const admin of admins) {
-  //   await sendNotifications({
-
-  //   });
-  // }
 
   const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
 
@@ -401,6 +365,7 @@ const createHostRequestToDB = async (
 
   return user;
 };
+
 
 const getAllHostRequestsFromDB = async (query: any) => {
   const baseQuery = User.find({
@@ -753,17 +718,6 @@ const getAllHostsFromDB = async (query: any) => {
   };
 };
 
-// const getHostByIdFromDB = async (id: string) => {
-//   const result = await User.findOne({
-//     _id: id,
-//     hostStatus: HOST_STATUS.APPROVED,
-//   });
-
-//   if (!result)
-//     throw new ApiError(404, "No host is found in the database by this ID");
-
-//   return result;
-// };
 
 const getHostByIdFromDB = async (id: string) => {
   if (!Types.ObjectId.isValid(id)) {
@@ -839,130 +793,7 @@ const getHostByIdFromDB = async (id: string) => {
 };
 
 
-// const getHostDetailsByIdFromDB = async (id: string) => {
-//   if (!Types.ObjectId.isValid(id)) {
-//     throw new ApiError(400, "Invalid host ID");
-//   }
 
-//   const pipeline: PipelineStage[] = [
-//     {
-//       $match: {
-//         _id: new Types.ObjectId(id),
-//         hostStatus: HOST_STATUS.APPROVED,
-//       },
-//     },
-//     /* Join Cars & Reviews */
-//     {
-//       $lookup: {
-//         from: "cars",
-//         localField: "_id",
-//         foreignField: "userId",
-//         as: "cars",
-//       },
-//     },
-//     {
-//       $lookup: {
-//         from: "reviews",
-//         let: { host_id: "$_id" },
-//         pipeline: [
-//           { $match: { $expr: { $eq: ["$hostId", "$$host_id"] } } },
-//           { $sort: { createdAt: -1 } },
-//           {
-//             $lookup: {
-//               from: "users",
-//               localField: "fromUserId",
-//               foreignField: "_id",
-//               as: "fromUser"
-//             }
-//           },
-//           { $unwind: "$fromUser" },
-//           {
-//             $project: {
-//               reviewId: "$_id",
-//               ratingValue: 1,
-//               feedback: 1,
-//               fromUser: {
-//                 _id: 1,
-//                 firstName: 1,
-//                 lastName: 1,
-//                 role: 1,
-//                 email: 1,
-//                 phone: 1,
-//                 profileImage: 1,
-//                 location: 1,
-//               }
-//             }
-//           }
-//         ],
-//         as: "reviews",
-//       },
-//     },
-//     /*  Calculation Stage (Filter & Stats) */
-//     {
-//       $addFields: {
-//         cars: {
-//           $filter: {
-//             input: "$cars",
-//             as: "car",
-//             cond: {
-//               $and: [
-//                 { $eq: ["$$car.verificationStatus", "APPROVED"] },
-//                 { $eq: ["$$car.isActive", true] },
-//               ],
-//             },
-//           },
-//         },
-//         totalReviews: { $size: "$reviews" },
-//         averageRating: {
-//           $cond: [
-//             { $gt: [{ $size: "$reviews" }, 0] },
-//             { $round: [{ $avg: "$reviews.ratingValue" }, 1] },
-//             0
-//           ]
-//         },
-//         starCounts: {
-//           "1": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 1] } } } },
-//           "2": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 2] } } } },
-//           "3": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 3] } } } },
-//           "4": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 4] } } } },
-//           "5": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 5] } } } },
-//         }
-//       },
-//     },
-//     /*  Get total count of filtered cars */
-//     {
-//       $addFields: {
-//         totalCars: { $size: "$cars" }
-//       }
-//     },
-//     //  strict projection
-//     {
-//       $project: {
-//         _id: 1,
-//         firstName: 1,
-//         lastName: 1,
-//         countryCode: 1,
-//         phone: 1,
-//         hostStatus: 1,
-//         location: 1,
-//         cars: 1,
-//         totalCars: 1,
-//         totalReviews: 1,
-//         averageRating: 1,
-//         starCounts: 1,
-//         reviews: 1,
-//       },
-//     },
-//   ];
-
-//   const result = await User.aggregate(pipeline);
-
-//   if (!result.length) {
-//     throw new ApiError(404, "No host is found in the database by this ID");
-//   }
-
-//   return result[0];
-// };
 
 // Updated function signature to accept location context
 const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {

@@ -9,8 +9,8 @@ export type IUser = {
   phone: string;
   email?: string;
   profileImage?: string;
-  nidFrontPic: string;
-  nidBackPic: string;
+  nidFrontPic?: string;
+  nidBackPic?: string;
   hostStatus: HOST_STATUS;
   drivingLicenseFrontPic?: string;
   drivingLicenseBackPic?: string;
@@ -43,8 +43,8 @@ export type IUser = {
 };
 
 export interface IHostRequestInput {
-  nidFrontPic: string;
-  nidBackPic: string;
+  nidFrontPic?: string;
+  nidBackPic?: string;
   drivingLicenseFrontPic?: string;
   drivingLicenseBackPic?: string;
 }
