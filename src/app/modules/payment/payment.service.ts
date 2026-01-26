@@ -14,6 +14,9 @@ import { BOOKING_STATUS, CAR_STATUS } from "../booking/booking.interface";
 import { InitiatePaymentDto } from "./payment.interface";
 import { User } from "../user/user.model";
 import mongoose from "mongoose";
+import { sendNotifications } from "../../../helpers/notificationsHelper";
+import { NOTIFICATION_TYPE } from "../notification/notification.constant";
+import { USER_ROLES } from "../../../enums/user";
 
 const COMMISSION_RATE = 0.15; // 15% commission
 
@@ -69,16 +72,6 @@ const createCheckoutSession = async (input: InitiatePaymentDto) => {
     });
   });
 
-  // 29,30 ai 2 diner vitore ai agents site ar kaj complete korte hobe frontend
-  // 29, 30 ai 2 diner maje final plan korte hobe agami 1year ar
-  // 2026 -> per week a 2 days martial arts practice abong noton kiso sikhte hobe
-  // 2026 -> jan ar vitore frontend sesh korte hobe
-  // 2026 -> jan ar 1 weak ar vitore fb page ready korte hobe khuv e professional vabe
-
-  const readBooks = () => {
-    console.log("Reading books...");
-    console.log("dashboard overview page, customer managements,order management,product management,chat,admin management,settings")
-  }
 
   console.log("Stripe Checkout Session created:", session.id);
 
@@ -150,6 +143,38 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
         }
       );
 
+      // NOTIFICATIONS USER
+      await sendNotifications({
+        text: "Payment successful. Your booking is confirmed.",
+        receiver: booking.userId.toString(),
+        type: NOTIFICATION_TYPE.USER,
+        referenceId: booking._id.toString(),
+      });
+
+      // NOTIFICATION HOST
+      await sendNotifications({
+        text: "New booking confirmed. Payment received.",
+        receiver: booking.hostId.toString(),
+        type: NOTIFICATION_TYPE.USER,
+        referenceId: booking._id.toString(),
+      });
+
+      // NOTIFICATION ADMIN(s)
+      const admins = await User.find({
+        role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
+      }).select("_id");
+
+      await Promise.all(
+        admins.map((admin) =>
+          sendNotifications({
+            text: `Payment completed for booking #${booking._id}`,
+            receiver: admin._id.toString(),
+            type: NOTIFICATION_TYPE.ADMIN,
+            referenceId: booking._id.toString(),
+          }),
+        ),
+      );
+
       return true;
     }
   }
@@ -158,12 +183,49 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
   if (event.type === "charge.refunded") {
     const charge = event.data.object as Stripe.Charge;
 
-    await Transaction.findOneAndUpdate(
+    const trx = await Transaction.findOneAndUpdate(
       { stripeChargeId: charge.id },
       {
         refundStatus: RefundStatus.SUCCEEDED,
         refundedAt: new Date(),
       }
+    );
+
+    if (!trx) return true;
+
+    const booking = await Booking.findById(trx.bookingId);
+    if (!booking) return true;
+
+    // NOTIFICATION USER
+    await sendNotifications({
+      text: "Your refund has been completed.",
+      receiver: booking.userId.toString(),
+      type: NOTIFICATION_TYPE.USER,
+      referenceId: booking._id.toString(),
+    });
+
+    // NOTIFICATION HOST
+    await sendNotifications({
+      text: "A booking refund was completed.",
+      receiver: booking.hostId.toString(),
+      type: NOTIFICATION_TYPE.USER,
+      referenceId: booking._id.toString(),
+    });
+
+    // // NOTIFICATION ADMIN(s)
+    const admins = await User.find({
+      role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
+    }).select("_id");
+
+    await Promise.all(
+      admins.map((admin) =>
+        sendNotifications({
+          text: `Refund completed for booking #${booking._id}`,
+          receiver: admin._id.toString(),
+          type: NOTIFICATION_TYPE.ADMIN,
+          referenceId: booking._id.toString(),
+        }),
+      ),
     );
 
     return true;
@@ -285,6 +347,30 @@ const payoutToHost = async (bookingId: string) => {
     payoutProcessed: true,
     payoutAt: new Date(),
   });
+
+  // NOTIFICATIONS HOST
+  await sendNotifications({
+    text: `Your payout of $${payoutAmount / 100} has been sent.`,
+    receiver: host._id.toString(),
+    type: NOTIFICATION_TYPE.USER,
+    referenceId: booking._id.toString(),
+  });
+
+  // NOTIFICATIONS ADMIN(s)
+  const admins = await User.find({
+    role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
+  }).select("_id");
+
+  await Promise.all(
+    admins.map((admin) =>
+      sendNotifications({
+        text: `Host payout completed for booking #${booking._id}`,
+        receiver: admin._id.toString(),
+        type: NOTIFICATION_TYPE.ADMIN,
+        referenceId: booking._id.toString(),
+      }),
+    ),
+  );
 };
 
 // ================ Refund  =================
@@ -321,6 +407,38 @@ const refundBookingPayment = async (
   transaction.status = TransactionStatus.CANCELED;
 
   await transaction.save({ session });
+
+  // NOTIFICATIONS USER
+  await sendNotifications({
+    text: `Refund of ${refundPercentage * 100}% has been initiated.`,
+    receiver: booking.userId.toString(),
+    type: NOTIFICATION_TYPE.USER,
+    referenceId: booking._id.toString(),
+  });
+
+  // NOTIFICATIONS HOST
+  await sendNotifications({
+    text: "A refund has been initiated for a booking.",
+    receiver: booking.hostId.toString(),
+    type: NOTIFICATION_TYPE.USER,
+    referenceId: booking._id.toString(),
+  });
+
+  // NOTIFICATIONS ADMIN(s)
+  const admins = await User.find({
+    role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
+  }).select("_id");
+
+  await Promise.all(
+    admins.map((admin) =>
+      sendNotifications({
+        text: `Refund initiated for booking #${booking._id}`,
+        receiver: admin._id.toString(),
+        type: NOTIFICATION_TYPE.ADMIN,
+        referenceId: booking._id.toString(),
+      }),
+    ),
+  );
 
   //  Optional but useful response
   return {
