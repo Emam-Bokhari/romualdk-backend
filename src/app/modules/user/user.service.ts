@@ -369,6 +369,28 @@ const createHostRequestToDB = async (
 
   await user.save();
 
+  // ---------------- NOTIFICATIONS ----------------
+
+  //  Notify USER
+  await sendNotifications({
+    text: "Your host request has been submitted and is under review.",
+    receiver: user._id.toString(),
+    type: NOTIFICATION_TYPE.USER,
+    referenceId: user._id.toString(),
+  });
+
+  // Notify ADMIN(s)
+  const admins = await User.find({ role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] } }).select("_id");
+
+  for (const admin of admins) {
+    await sendNotifications({
+      text: `New host request submitted by user (${user.phone || user._id})`,
+      receiver: admin._id.toString(),
+      type: NOTIFICATION_TYPE.ADMIN,
+      referenceId: user._id.toString(),
+    });
+  }
+
   return user;
 };
 
