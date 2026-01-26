@@ -340,13 +340,13 @@ const createHostRequestToDB = async (
     user.drivingLicenseBackPic = payload.drivingLicenseBackPic;
   }
 
-  user.hostStatus = HOST_STATUS.PENDING;
+  user.hostStatus = HOST_STATUS.APPROVED;
   await user.save();
 
   // ---------------- NOTIFICATIONS ----------------
 
   await sendNotifications({
-    text: "Your host request has been submitted and is under review.",
+    text: "Your host request has been submitted.",
     receiver: user._id.toString(),
     type: NOTIFICATION_TYPE.USER,
     referenceId: user._id.toString(),
@@ -793,14 +793,11 @@ const getHostByIdFromDB = async (id: string) => {
 };
 
 
-
-
 // Updated function signature to accept location context
 const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
   if (!Types.ObjectId.isValid(id)) {
     throw new ApiError(400, "Invalid host ID");
   }
-
 
 
   // 1. Get the visitor's location (same logic as getAllCars)
