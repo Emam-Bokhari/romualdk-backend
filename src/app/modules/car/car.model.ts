@@ -44,6 +44,7 @@ const CarSchema = new Schema<ICar>(
     transmission: {
       type: String,
       enum: Object.values(TRANSMISSION),
+      trim: true,
       required: true,
     },
     fuelType: {
@@ -99,7 +100,7 @@ const CarSchema = new Schema<ICar>(
     licensePlate: {
       type: String,
       required: true,
-      unique: true,
+      // unique: true,
       uppercase: true,
       trim: true,
     },
@@ -261,7 +262,7 @@ CarSchema.index({ pickupPoint: "2dsphere" });
 // Compound index for common queries
 CarSchema.index({ userId: 1, isActive: 1 });
 CarSchema.index({ city: 1, isActive: 1 });
-CarSchema.index({ licensePlate: 1 });
+// CarSchema.index({ licensePlate: 1 });
 CarSchema.index({ vin: 1 });
 
 // Model

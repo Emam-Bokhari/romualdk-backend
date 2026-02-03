@@ -19,6 +19,7 @@ import { HostDashboardRoutes } from "../modules/hostDashboard/hostDashboard.rout
 import { DestinationRoutes } from "../modules/destination/destination.route";
 import { SmsLogRoutes } from "../modules/smsLog/smsLog.route";
 import { NotificationRoutes } from "../modules/notification/notification.routes";
+import { SettingRoutes } from "../modules/settings/settings.route";
 
 const router = express.Router();
 
@@ -103,7 +104,11 @@ const apiRoutes = [
   {
     path: "/notifications",
     route: NotificationRoutes
-  }
+  },
+  {
+    path: "/settings",
+    route: SettingRoutes,
+  },
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));

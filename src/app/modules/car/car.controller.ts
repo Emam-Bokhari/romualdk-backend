@@ -9,6 +9,8 @@ const createCar = catchAsync(async (req, res) => {
 
   const carData = req.body;
 
+  console.log(carData,"CAR DATA");
+
   const result = await CarServices.createCarToDB(userId, carData);
 
   sendResponse(res, {
