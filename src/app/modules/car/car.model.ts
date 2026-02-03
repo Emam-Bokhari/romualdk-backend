@@ -54,7 +54,7 @@ const CarSchema = new Schema<ICar>(
     verificationStatus: {
       type: String,
       enum: Object.values(CAR_VERIFICATION_STATUS),
-      default: CAR_VERIFICATION_STATUS.PENDING,
+      default: CAR_VERIFICATION_STATUS.APPROVED, // logic change for client requirements 'PENDING' to 'APPROVED'
     },
     // airConditioning: {
     //   type: Boolean,
