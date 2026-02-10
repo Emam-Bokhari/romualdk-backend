@@ -47,7 +47,7 @@ import { afrikSmsService } from "../../../helpers/afrikSms.service";
 const loginUserFromDB = async (payload: ILoginData) => {
   const { email, phone, password } = payload;
 
-  console.log(email, password);
+  console.log(phone, password);
 
   // Either phone or email must be provided
   if (!phone && !email) {
@@ -61,7 +61,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
   const query: any = {};
   if (phone) query.phone = phone;
   if (email) query.email = email;
-
+  console.log(query, "hiiiiiiiiiiiiiiiiiiiiiiiiiii")
   const user: any = await User.findOne(query).select("+password");
 
   if (!user) {
@@ -206,18 +206,18 @@ const forgetPasswordToDB = async (payload: any) => {
       throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
 
-  //  generate OTP
+    //  generate OTP
     const otp = afrikSmsService.generateOTP();
 
     const smsMessage = `Your password reset code is ${otp}. Valid for 5 minutes.`;
-    
+
     try {
       await afrikSmsService.sendSMS(phone, countryCode, smsMessage);
     } catch (error) {
       throw new ApiError(StatusCodes.EXPECTATION_FAILED, "Failed to send reset code to phone.");
     }
 
-    
+
     const authentication = {
       oneTimeCode: otp,
       expireAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
@@ -346,7 +346,7 @@ const forgetPasswordToDB = async (payload: any) => {
 // ======================================= afriksms verify phone otp============================
 const verifyPhoneToDB = async (payload: {
   phone: string;
-  code: string; 
+  code: string;
   countryCode: string;
 }) => {
   const { phone, code, countryCode } = payload;
@@ -364,9 +364,9 @@ const verifyPhoneToDB = async (payload: {
   const dbOtp = isExistUser.authentication?.oneTimeCode;
   const expiry = isExistUser.authentication?.expireAt;
 
-  const isValid = 
-    dbOtp !== null && 
-    dbOtp === Number(code) && 
+  const isValid =
+    dbOtp !== null &&
+    dbOtp === Number(code) &&
     expiry && new Date(expiry) > new Date();
 
   if (!isValid) {
@@ -376,7 +376,7 @@ const verifyPhoneToDB = async (payload: {
   let message;
   let data;
 
- 
+
   if (!isExistUser.verified) {
     await User.findOneAndUpdate(
       { _id: isExistUser._id },
@@ -391,7 +391,7 @@ const verifyPhoneToDB = async (payload: {
     );
 
     message = "Your account is verified successfully";
-  } 
+  }
 
   else {
     await User.findOneAndUpdate(
@@ -405,7 +405,7 @@ const verifyPhoneToDB = async (payload: {
       },
     );
 
-   
+
     const createToken = cryptoToken();
 
 
@@ -489,7 +489,7 @@ const resetPasswordToDB = async (
   payload: { newPassword: string; confirmPassword: string },
 ) => {
   const { newPassword, confirmPassword } = payload;
-  console.log(token,"token")
+  console.log(token, "token")
 
   //  Password matching check
   if (newPassword !== confirmPassword) {
@@ -511,7 +511,7 @@ const resetPasswordToDB = async (
     "+authentication",
   );
 
- 
+
   if (!isExistUser?.authentication?.isResetPassword) {
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,
@@ -669,12 +669,12 @@ const resendPhoneOTPToDB = async (phone: string, countryCode: string) => {
 
   // 
   const smsMessage = `Your verification code is ${otp}. Valid for 5 minutes.`;
-  
+
   try {
     await afrikSmsService.sendSMS(phone, countryCode, smsMessage);
   } catch (error: any) {
     throw new ApiError(
-      StatusCodes.EXPECTATION_FAILED, 
+      StatusCodes.EXPECTATION_FAILED,
       `Failed to resend OTP: ${error.message}`
     );
   }
