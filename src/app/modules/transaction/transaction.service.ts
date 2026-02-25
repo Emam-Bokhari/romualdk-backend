@@ -1,6 +1,8 @@
- 
 import { Types } from "mongoose";
-import Transaction, { PayoutStatus, TransactionStatus } from "../payment/transaction.model";
+import Transaction, {
+  PayoutStatus,
+  TransactionStatus,
+} from "../payment/transaction.model";
 import QueryBuilder from "../../builder/queryBuilder";
 
 interface GetTransactionsQuery {
@@ -35,16 +37,14 @@ interface GetTransactionsQuery {
 // };
 
 const getAllTransactions = async (query: GetTransactionsQuery) => {
-  const baseQuery = Transaction.find()
-    .populate({
-      path: "bookingId",
-      populate: { path: "carId userId hostId" },
-    });
+  const baseQuery = Transaction.find().populate({
+    path: "bookingId",
+    populate: { path: "carId userId hostId" },
+  });
 
   const qb = new QueryBuilder(baseQuery, query);
 
-  qb
-    .search(["method", "status", "stripePaymentIntentId", "payoutStatus"])
+  qb.search(["method", "status", "stripePaymentIntentId", "payoutStatus"])
     .filter()
     .sort()
     .paginate()
@@ -59,8 +59,6 @@ const getAllTransactions = async (query: GetTransactionsQuery) => {
   };
 };
 
-
-
 const getTransactionById = async (id: string) => {
   if (!Types.ObjectId.isValid(id)) throw new Error("Invalid Transaction ID");
   const transaction = await Transaction.findById(id);
@@ -68,7 +66,10 @@ const getTransactionById = async (id: string) => {
   return transaction;
 };
 
-const updateTransaction = async (id: string, payload: Partial<typeof Transaction>) => {
+const updateTransaction = async (
+  id: string,
+  payload: Partial<typeof Transaction>,
+) => {
   if (!Types.ObjectId.isValid(id)) throw new Error("Invalid Transaction ID");
   const transaction = await Transaction.findByIdAndUpdate(id, payload, {
     new: true,
@@ -88,21 +89,21 @@ const deleteTransaction = async (id: string) => {
 const getPlatformMonthlyRevenue = async (year?: number) => {
   const targetYear = year ?? new Date().getFullYear();
 
-  const startOfYear = new Date(targetYear, 0, 1);           // 1 Jan, targetYear
-  const endOfYear = new Date(targetYear + 1, 0, 1);         // 1 Jan, next year
+  const startOfYear = new Date(targetYear, 0, 1); // 1 Jan, targetYear
+  const endOfYear = new Date(targetYear + 1, 0, 1); // 1 Jan, next year
 
   const revenueData = await Transaction.aggregate([
     {
       $match: {
-        status: TransactionStatus.SUCCEEDED,           // customer paid
-        payoutStatus: PayoutStatus.SUCCEEDED,          // host ke payout kora hoyeche 
-        commissionAmount: { $gt: 0 },                  // commission ache
-        updatedAt: { $gte: startOfYear, $lt: endOfYear }, // payout howar month 
+        status: TransactionStatus.SUCCEEDED, // customer paid
+        payoutStatus: PayoutStatus.SUCCEEDED, // host ke payout kora hoyeche
+        commissionAmount: { $gt: 0 }, // commission ache
+        updatedAt: { $gte: startOfYear, $lt: endOfYear }, // payout howar month
       },
     },
     {
       $group: {
-        _id: { $month: "$updatedAt" },                 // payout month
+        _id: { $month: "$updatedAt" }, // payout month
         revenue: { $sum: "$commissionAmount" },
       },
     },
@@ -113,13 +114,23 @@ const getPlatformMonthlyRevenue = async (year?: number) => {
 
   // 12 months er full array banao (jate 0% month o dekha jay)
   const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
   const monthlyRevenue = months.map((monthName, index) => {
     const monthNumber = index + 1;
-    const data = revenueData.find(item => item._id === monthNumber);
+    const data = revenueData.find((item) => item._id === monthNumber);
     return {
       month: monthNumber,
       monthName,
@@ -135,7 +146,6 @@ const getPlatformMonthlyRevenue = async (year?: number) => {
     monthly: monthlyRevenue,
   };
 };
-
 
 export const TransactionService = {
   getAllTransactions,

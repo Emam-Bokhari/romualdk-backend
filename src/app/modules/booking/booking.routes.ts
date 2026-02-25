@@ -10,9 +10,8 @@ const router = Router();
 router.get(
   "/status-stats",
   auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.HOST),
-  BookingController.getBookingStatusStatsController
+  BookingController.getBookingStatusStatsController,
 );
-
 
 router.post(
   "/",
@@ -20,10 +19,10 @@ router.post(
     USER_ROLES.ADMIN,
     USER_ROLES.HOST,
     USER_ROLES.SUPER_ADMIN,
-    USER_ROLES.USER
+    USER_ROLES.USER,
   ),
   validateRequest(createBookingSchema as any),
-  BookingController.createBooking
+  BookingController.createBooking,
 );
 
 router.get("/my", auth(), BookingController.myBookings);
@@ -34,9 +33,9 @@ router.patch(
     USER_ROLES.ADMIN,
     USER_ROLES.HOST,
     USER_ROLES.SUPER_ADMIN,
-    USER_ROLES.USER
+    USER_ROLES.USER,
   ),
-  BookingController.checkInController
+  BookingController.checkInController,
 );
 router.patch(
   "/check-out/:id",
@@ -44,9 +43,9 @@ router.patch(
     USER_ROLES.ADMIN,
     USER_ROLES.HOST,
     USER_ROLES.SUPER_ADMIN,
-    USER_ROLES.USER
+    USER_ROLES.USER,
   ),
-  BookingController.checkOutController
+  BookingController.checkOutController,
 );
 router.patch(
   "/is-cancelled/:id",
@@ -54,14 +53,14 @@ router.patch(
     USER_ROLES.ADMIN,
     USER_ROLES.HOST,
     USER_ROLES.SUPER_ADMIN,
-    USER_ROLES.USER
+    USER_ROLES.USER,
   ),
-  BookingController.isCancelledController
+  BookingController.isCancelledController,
 );
 router.get(
   "/",
   auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-  BookingController.getAllBookingsController
+  BookingController.getAllBookingsController,
 );
 router.get(
   "/:id",
@@ -69,24 +68,24 @@ router.get(
     USER_ROLES.SUPER_ADMIN,
     USER_ROLES.ADMIN,
     USER_ROLES.HOST,
-    USER_ROLES.USER
+    USER_ROLES.USER,
   ),
-  BookingController.getBookingByIdController
+  BookingController.getBookingByIdController,
 );
 router.patch(
   "/:id",
   auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-  BookingController.updateBookingByAdminController
+  BookingController.updateBookingByAdminController,
 );
 router.delete(
   "/:id",
   auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-  BookingController.deleteBookingByAdminController
+  BookingController.deleteBookingByAdminController,
 );
 router.get(
   "/status-stats",
   auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.HOST),
-  BookingController.getBookingStatusStatsController
+  BookingController.getBookingStatusStatsController,
 );
 
 export const bookingRoutes = router;

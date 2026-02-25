@@ -171,8 +171,8 @@ const CarSchema = new Schema<ICar>(
     ],
     facilities: [
       {
-        label: { type: String, required: true },  // Display name from dashboard (e.g. "Bluetooth")
-        value: { type: String, required: true },  // Unique key (e.g. "bluetooth", "gps", "air_condition") 
+        label: { type: String, required: true }, // Display name from dashboard (e.g. "Bluetooth")
+        value: { type: String, required: true }, // Unique key (e.g. "bluetooth", "gps", "air_condition")
       },
     ],
     availableHours: [

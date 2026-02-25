@@ -18,7 +18,6 @@ let server: any;
 
 async function main() {
   try {
-
     // create super admin
     seedSuperAdmin();
     // await redisClient.connect();

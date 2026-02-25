@@ -9,14 +9,12 @@ import { PaymentController } from "./app/modules/payment/payment.controller";
 import { globalRateLimiter } from "./app/middlewares/rateLimiter";
 import v2Router from "./app/routes/v2";
 
-
 const app: Application = express();
-
 
 app.post(
   "/api/v1/payments/webhook/stripe",
   express.raw({ type: "application/json" }),
-  PaymentController.stripeWebhook
+  PaymentController.stripeWebhook,
 );
 
 app.set("view engine", "ejs");
@@ -29,19 +27,18 @@ app.use(Morgan.errorHandler);
 //body parser
 app.use(
   cors({
-    origin: ["http://10.10.7.46:30011", "http://10.10.7.41:5003","https://dashboard.goconnecte.com"],
+    origin: [
+      "http://10.10.7.46:30011",
+      "http://10.10.7.41:5003",
+      "https://dashboard.goconnecte.com",
+    ],
     credentials: true,
   }),
 );
 
-
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
-
-
-
-
 
 //file retrieve
 app.use(express.static("uploads"));

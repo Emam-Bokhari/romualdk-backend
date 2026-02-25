@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
-import {  PaymentService } from "./payment.service";
+import { PaymentService } from "./payment.service";
 
 const initiatePayment = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
@@ -15,8 +15,6 @@ const initiatePayment = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
- 
-
 
 const stripeWebhook = catchAsync(async (req: Request, res: Response) => {
   const sig = req.headers["stripe-signature"] as string;
@@ -36,25 +34,27 @@ const stripeWebhook = catchAsync(async (req: Request, res: Response) => {
 });
 
 const success = catchAsync(async (_req: Request, res: Response) => {
-  res.redirect("myapp://payment-success"); 
+  res.redirect("myapp://payment-success");
 });
 
 const cancel = catchAsync(async (_req: Request, res: Response) => {
   res.redirect("myapp://payment-failed");
 });
 
-const payoutToHostController = catchAsync(async (req: Request, res: Response) => {
-  const { bookingId } = req.params;
+const payoutToHostController = catchAsync(
+  async (req: Request, res: Response) => {
+    const { bookingId } = req.params;
 
-  const result = await PaymentService.payoutToHost(bookingId);
+    const result = await PaymentService.payoutToHost(bookingId);
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Host payout completed successfully",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Host payout completed successfully",
+      data: result,
+    });
+  },
+);
 
 // -------- Export as object ----------
 

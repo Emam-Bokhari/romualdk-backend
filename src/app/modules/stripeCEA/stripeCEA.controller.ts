@@ -19,7 +19,7 @@ const createStripeAccount = catchAsync(async (req, res) => {
   const onboardingLink = await stripeService.createAccountLink(
     stripeAccount.id,
     returnUrl,
-    refreshUrl
+    refreshUrl,
   );
 
   sendResponse(res, {

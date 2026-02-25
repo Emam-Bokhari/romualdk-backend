@@ -13,7 +13,9 @@ export enum TransactionStatus {
 //   OTHER = "other",
 // }
 
-export enum PaymentMethod { CARD = "card", }
+export enum PaymentMethod {
+  CARD = "card",
+}
 
 export enum PayoutStatus {
   PENDING = "pending",
@@ -45,7 +47,7 @@ export interface ITransaction extends Document {
   stripeSessionId?: string;
   stripePaymentIntentId?: string;
 
-    // NEW
+  // NEW
   commissionAmount?: number;
   payoutStatus?: PayoutStatus;
   // Refund
@@ -54,7 +56,7 @@ export interface ITransaction extends Document {
   refundStatus?: RefundStatus;
   refundedAt?: Date;
   stripeTransferId?: string;
-  stripeChargeId?: string,
+  stripeChargeId?: string;
   // payoutType?: PayoutType;
   hostReceiptAmount?: number;
 
@@ -67,7 +69,11 @@ const transactionSchema = new Schema<ITransaction>(
     bookingId: { type: Schema.Types.ObjectId, ref: "Booking", required: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: "usd" },
-    method: { type: String, enum: Object.values(PaymentMethod), default:  PaymentMethod.CARD },
+    method: {
+      type: String,
+      enum: Object.values(PaymentMethod),
+      default: PaymentMethod.CARD,
+    },
     status: {
       type: String,
       enum: Object.values(TransactionStatus),
@@ -101,7 +107,9 @@ const transactionSchema = new Schema<ITransaction>(
   { timestamps: true },
 );
 
-export const Transaction = mongoose.model<ITransaction>("Transaction", transactionSchema);
+export const Transaction = mongoose.model<ITransaction>(
+  "Transaction",
+  transactionSchema,
+);
 
 export default Transaction;
-

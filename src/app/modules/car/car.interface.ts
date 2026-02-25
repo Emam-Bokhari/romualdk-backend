@@ -34,8 +34,8 @@ export interface IBlockedDate {
 }
 
 export interface ICarFacility {
-  label: string;   // Display name from dashboard (e.g. "Bluetooth")
-  value: string;   // Unique key (e.g. "bluetooth", "gps", "air_condition") 
+  label: string; // Display name from dashboard (e.g. "Bluetooth")
+  value: string; // Unique key (e.g. "bluetooth", "gps", "air_condition")
 }
 
 export interface ICar {
@@ -61,7 +61,11 @@ export interface ICar {
   minimumTripDuration: number; // in hours
   withDriver: boolean;
   city: string;
-  pickupPoint: { type: "Point"; coordinates: [number, number], address: string }; // GeoJSON Point
+  pickupPoint: {
+    type: "Point";
+    coordinates: [number, number];
+    address: string;
+  }; // GeoJSON Point
   availableDays: AVAILABLE_DAYS[];
   facilities: ICarFacility[];
   availableHours: string[];
@@ -71,5 +75,3 @@ export interface ICar {
   isActive: boolean;
   isAvailable?: boolean; // virtual field
 }
-
-

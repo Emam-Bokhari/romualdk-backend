@@ -1,5 +1,5 @@
-import catchAsync from '../../../shared/catchAsync';
-import { SettingsServices } from './settings.service';
+import catchAsync from "../../../shared/catchAsync";
+import { SettingsServices } from "./settings.service";
 
 const getPrivacyPolicy = catchAsync(async (req, res) => {
   const htmlContent = await SettingsServices.getPrivacyPolicy();

@@ -19,7 +19,6 @@ const createBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 /* -------------------- User Bookings -------------------- */
 const myBookings = catchAsync(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
@@ -79,18 +78,20 @@ const checkOutController = catchAsync(async (req: Request, res: Response) => {
 });
 
 /* -------------------- Cancel Booking -------------------- */
-const isCancelledController = catchAsync(async (req: Request, res: Response) => {
-  const bookingId = req.params.id;
+const isCancelledController = catchAsync(
+  async (req: Request, res: Response) => {
+    const bookingId = req.params.id;
 
-  const result = await BookingService.isCancelled(bookingId);
+    const result = await BookingService.isCancelled(bookingId);
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Booking cancelled & refund processed",
-    data: { isCancelled: result },
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Booking cancelled & refund processed",
+      data: { isCancelled: result },
+    });
+  },
+);
 
 /* ============ Admin: Get All Bookings (Advanced) ============ */
 const getAllBookingsController = catchAsync(
@@ -104,9 +105,8 @@ const getAllBookingsController = catchAsync(
       data: result.data,
       meta: result.meta,
     });
-  }
+  },
 );
-
 
 /* ================= Booking By ID ==================== */
 const getBookingByIdController = catchAsync(
@@ -121,7 +121,7 @@ const getBookingByIdController = catchAsync(
       message: "Booking retrieved successfully",
       data: result,
     });
-  }
+  },
 );
 
 /* ============ Admin: Update Booking ============ */
@@ -136,7 +136,7 @@ const updateBookingByAdminController = catchAsync(
       message: "Booking updated successfully",
       data: result,
     });
-  }
+  },
 );
 
 /* ============ Admin: Delete Booking ============ */
@@ -151,33 +151,35 @@ const deleteBookingByAdminController = catchAsync(
       message: "Booking deleted successfully",
       data: result,
     });
-  }
+  },
 );
 
 // ========== Get booking status stats for chart ==========
 
-const getBookingStatusStatsController = catchAsync(async (req: Request, res: Response) => {
-  // year optional – string hisebe asbe query te
-  const year = req.query.year ? Number(req.query.year) : undefined;
+const getBookingStatusStatsController = catchAsync(
+  async (req: Request, res: Response) => {
+    // year optional – string hisebe asbe query te
+    const year = req.query.year ? Number(req.query.year) : undefined;
 
-  // Optional validation
-  if (year && (isNaN(year) || year < 2000 || year > 2100)) {
-    return sendResponse(res, {
-      statusCode: 400,
-      success: false,
-      message: "Invalid year provided",
+    // Optional validation
+    if (year && (isNaN(year) || year < 2000 || year > 2100)) {
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: "Invalid year provided",
+      });
+    }
+
+    const result = await BookingService.getBookingStatusStats(year);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Yearly booking status stats retrieved successfully",
+      data: result,
     });
-  }
-
-  const result = await BookingService.getBookingStatusStats(year);
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Yearly booking status stats retrieved successfully",
-    data: result,
-  });
-});
+  },
+);
 // -------- Export as object ----------
 
 export const BookingController = {

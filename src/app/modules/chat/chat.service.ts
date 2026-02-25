@@ -8,7 +8,7 @@ const createChatIntoDB = async (participants: string[]) => {
   const isExistChat = await Chat.findOne({
     participants: { $all: participants },
     isDeleted: { $ne: true },
-  }).populate("participants"); ;
+  }).populate("participants");
 
   if (isExistChat) {
     return isExistChat;

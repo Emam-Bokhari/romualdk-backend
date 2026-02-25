@@ -4,10 +4,10 @@ import stripe from "../../../config/stripe";
 class StripeService {
   async createConnectedAccount(email: string): Promise<Stripe.Account> {
     return stripe.accounts.create({
-      type: 'express',
-      country: 'US',
+      type: "express",
+      country: "US",
       email,
-      business_type: 'individual',
+      business_type: "individual",
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },
@@ -18,13 +18,13 @@ class StripeService {
   async createAccountLink(
     accountId: string,
     returnUrl: string,
-    refreshUrl: string
+    refreshUrl: string,
   ): Promise<string> {
     const link = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: refreshUrl,
       return_url: returnUrl,
-      type: 'account_onboarding',
+      type: "account_onboarding",
     });
 
     return link.url;

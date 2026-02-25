@@ -21,7 +21,10 @@ interface IPriceCalculation {
   totalHours: number;
 }
 
-const calculatePrice = (fromDate: string, toDate: string): IPriceCalculation => {
+const calculatePrice = (
+  fromDate: string,
+  toDate: string,
+): IPriceCalculation => {
   const from = new Date(fromDate).getTime();
   const to = new Date(toDate).getTime();
 
@@ -50,5 +53,3 @@ const calculatePrice = (fromDate: string, toDate: string): IPriceCalculation => 
 };
 
 export { calculatePrice };
-
-

@@ -72,10 +72,9 @@ const createCheckoutSession = async (input: InitiatePaymentDto) => {
     });
   });
 
-
   console.log("Stripe Checkout Session created:", session.id);
 
-  console.log("stripe account ID:")
+  console.log("stripe account ID:");
 
   return {
     success: true,
@@ -91,7 +90,7 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
     event = (stripe as unknown as Stripe).webhooks.constructEvent(
       rawBody,
       sig,
-      config.stripe.webhookSecret as string
+      config.stripe.webhookSecret as string,
     );
   } catch (err: any) {
     console.error(`Webhook Error: ${err.message}`);
@@ -122,7 +121,7 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
 
       const paymentIntent = await stripe.paymentIntents.retrieve(
         paymentIntentId,
-        { expand: ["latest_charge"] }
+        { expand: ["latest_charge"] },
       );
 
       const chargeId =
@@ -140,7 +139,7 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
           status: TransactionStatus.SUCCEEDED,
           stripePaymentIntentId: paymentIntentId,
           stripeChargeId: chargeId,
-        }
+        },
       );
 
       // NOTIFICATIONS USER
@@ -160,7 +159,9 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
       });
 
       // NOTIFICATION ADMIN(s)
-      const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+      const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select(
+        "_id",
+      );
 
       if (admin) {
         await sendNotifications({
@@ -183,7 +184,7 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
       {
         refundStatus: RefundStatus.SUCCEEDED,
         refundedAt: new Date(),
-      }
+      },
     );
 
     if (!trx) return true;
@@ -208,7 +209,9 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
     });
 
     // // NOTIFICATION ADMIN(s)
-    const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+    const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select(
+      "_id",
+    );
 
     if (admin) {
       await sendNotifications({
@@ -231,7 +234,7 @@ const handleWebhook = async (rawBody: Buffer, sig: string) => {
       {
         onboardingCompleted: account.details_submitted,
         payoutsEnabled: account.payouts_enabled,
-      }
+      },
     );
 
     return true;
@@ -348,7 +351,9 @@ const payoutToHost = async (bookingId: string) => {
   });
 
   // NOTIFICATIONS ADMIN(s)
-  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select(
+    "_id",
+  );
 
   if (admin) {
     await sendNotifications({
@@ -358,7 +363,6 @@ const payoutToHost = async (bookingId: string) => {
       referenceId: booking._id.toString(),
     });
   }
-
 };
 
 // ================ Refund  =================
@@ -367,14 +371,14 @@ const refundBookingPayment = async (
   booking: any,
   transaction: any,
   refundPercentage: number,
-  session: mongoose.ClientSession
+  session: mongoose.ClientSession,
 ) => {
   if (!transaction.stripeChargeId) {
     throw new Error("Stripe charge not found");
   }
 
   const refundAmountInCents = Math.round(
-    transaction.amount * refundPercentage * 100
+    transaction.amount * refundPercentage * 100,
   );
 
   //  Stripe call (EXTERNAL)
@@ -385,7 +389,7 @@ const refundBookingPayment = async (
     },
     {
       idempotencyKey: `refund_${booking._id}`,
-    }
+    },
   );
 
   //  DB update (ATOMIC via session)
@@ -413,7 +417,9 @@ const refundBookingPayment = async (
   });
 
   // NOTIFICATIONS ADMIN
-  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select(
+    "_id",
+  );
 
   if (admin) {
     await sendNotifications({
@@ -424,8 +430,6 @@ const refundBookingPayment = async (
     });
   }
 
-
-
   //  Optional but useful response
   return {
     refundId: refund.id,
@@ -433,9 +437,6 @@ const refundBookingPayment = async (
     refundPercentage: refundPercentage * 100,
   };
 };
-
-
-
 
 // -------- Export as object ----------
 

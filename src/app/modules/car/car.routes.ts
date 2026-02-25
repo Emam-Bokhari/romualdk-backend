@@ -30,11 +30,7 @@ router
     CarControllers.getAllCars,
   );
 
-router.get(
-  "/recent",
-  optionalAuth(),
-  CarControllers.getRecentCars
-);
+router.get("/recent", optionalAuth(), CarControllers.getRecentCars);
 
 router.get("/my", auth(USER_ROLES.HOST), CarControllers.getOwnCars);
 
@@ -44,7 +40,10 @@ router.get(
   CarControllers.getSuggestedCars,
 );
 
-router.get("/by-destination/:destinationId", CarControllers.getCarsByDestination);
+router.get(
+  "/by-destination/:destinationId",
+  CarControllers.getCarsByDestination,
+);
 
 router.get("/availability/:carId", CarControllers.getAvailability);
 

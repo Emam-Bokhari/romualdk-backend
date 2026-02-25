@@ -15,13 +15,17 @@ import { ReviewServices } from "../review/review.service";
 import { REVIEW_TYPE } from "../review/review.interface";
 import { Booking } from "../booking/booking.model";
 import { BOOKING_STATUS } from "../booking/booking.interface";
-import { checkCarAvailabilityByDate, getCarCalendar, getCarTripCount, getCarTripCountMap, getTargetLocation } from "./car.utils";
+import {
+  checkCarAvailabilityByDate,
+  getCarCalendar,
+  getCarTripCount,
+  getCarTripCountMap,
+  getTargetLocation,
+} from "./car.utils";
 import redisClient from "../../../shared/redisClient";
 import { Destination } from "../destination/destination.model";
 import { sendNotifications } from "../../../helpers/notificationsHelper";
 import { NOTIFICATION_TYPE } from "../notification/notification.constant";
-
-
 
 const createCarToDB = async (userId: string, payload: ICar) => {
   const user = await User.findOne({
@@ -37,7 +41,7 @@ const createCarToDB = async (userId: string, payload: ICar) => {
   payload.userId = new Types.ObjectId(userId);
 
   if (payload.facilities?.length) {
-    payload.facilities.forEach(facility => {
+    payload.facilities.forEach((facility) => {
       if (!facility.label || !facility.value) {
         throw new ApiError(400, "Each facility must have label and value");
       }
@@ -58,7 +62,9 @@ const createCarToDB = async (userId: string, payload: ICar) => {
     });
 
     //  Notify ADMIN & SUPER_ADMIN
-    const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+    const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select(
+      "_id",
+    );
 
     if (admin) {
       await sendNotifications({
@@ -74,27 +80,32 @@ const createCarToDB = async (userId: string, payload: ICar) => {
     if (error.code === 11000) {
       throw new ApiError(400, "Car with this license plate already exists");
     }
-    throw new ApiError(error.statusCode || 500, error.message || "Failed to create a car");
+    throw new ApiError(
+      error.statusCode || 500,
+      error.message || "Failed to create a car",
+    );
   }
 };
-
 
 const getAllCarsFromDB = async (query: any, userId: string) => {
   const {
     searchTerm,
-    minPrice, maxPrice,
+    minPrice,
+    maxPrice,
     transmission,
     fuelType,
     color,
     city,
     rating,
-    latitude, longitude, maxDistance,
+    latitude,
+    longitude,
+    maxDistance,
     withDriver,
     date,
     time,
     sort,
     page = 1,
-    limit = 10
+    limit = 10,
   } = query;
 
   // reusable function get location
@@ -103,7 +114,7 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
   // ---------- create dynamic object ----------
   const filter: any = {
     verificationStatus: CAR_VERIFICATION_STATUS.APPROVED,
-    isActive: true
+    isActive: true,
   };
 
   // search logic
@@ -135,15 +146,15 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
   // ---------- create pipeline ----------
   let pipeline: any[] = [];
 
-  // 
+  //
   pipeline.push({
     $geoNear: {
       near: { type: "Point", coordinates: [lng, lat] },
       distanceField: "distance",
       maxDistance: maxDistance ? Number(maxDistance) * 1000 : 500000, // 500km
       spherical: true,
-      query: filter
-    }
+      query: filter,
+    },
   });
 
   // sorting
@@ -174,7 +185,10 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
       if (!car) return null;
 
       // Availability check
-      const availability = await CarServices.getAvailability(car._id.toString(), targetDate);
+      const availability = await CarServices.getAvailability(
+        car._id.toString(),
+        targetDate,
+      );
       const availabilityCalendar = await getCarCalendar(car._id.toString());
 
       let isAvailable = !availability.isFullyBlocked;
@@ -187,17 +201,26 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
       if ((date || time) && !isAvailable) return null;
 
       // rating filter
-      const reviewSummary = await ReviewServices.getReviewSummaryFromDB(car._id.toString(), REVIEW_TYPE.CAR);
+      const reviewSummary = await ReviewServices.getReviewSummaryFromDB(
+        car._id.toString(),
+        REVIEW_TYPE.CAR,
+      );
       if (rating && reviewSummary.averageRating < Number(rating)) return null;
 
       // other data
       const tripsCountMap = await getCarTripCountMap([car._id]);
-      const isBookmarked = await FavouriteCar.exists({ userId, referenceId: car._id });
+      const isBookmarked = await FavouriteCar.exists({
+        userId,
+        referenceId: car._id,
+      });
 
       return {
         ...car.toObject(),
         // distance in km
-        distance: carData.distance !== undefined ? (carData.distance / 1000).toFixed(1) : "0.0",
+        distance:
+          carData.distance !== undefined
+            ? (carData.distance / 1000).toFixed(1)
+            : "0.0",
         isAvailable,
         availabilityCalendar,
         trips: tripsCountMap[car._id.toString()] || 0,
@@ -206,13 +229,13 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
         totalReviews: reviewSummary.totalReviews,
         starCounts: reviewSummary.starCounts,
         reviews: reviewSummary.reviews,
-        availabilitySlots: availability.slots
+        availabilitySlots: availability.slots,
       };
-    })
+    }),
   );
 
   // filter out nulls
-  const finalCars = processedCars.filter(car => car !== null);
+  const finalCars = processedCars.filter((car) => car !== null);
 
   const result = {
     data: finalCars,
@@ -274,7 +297,6 @@ const getRecentCarsFromDB = async (userId?: string) => {
   //  get location
   const { lat, lng } = await getTargetLocation(undefined, undefined, userId);
 
-
   const cars = await Car.aggregate([
     {
       $geoNear: {
@@ -291,24 +313,21 @@ const getRecentCarsFromDB = async (userId?: string) => {
     { $limit: limit },
   ]);
 
-
   let favouriteMap: Record<string, boolean> = {};
 
   if (userId) {
     const favourites = await FavouriteCar.find({
       userId,
-      referenceId: { $in: cars.map(c => c._id) },
+      referenceId: { $in: cars.map((c) => c._id) },
     }).select("referenceId");
 
-    favourites.forEach(fav => {
+    favourites.forEach((fav) => {
       favouriteMap[fav.referenceId.toString()] = true;
     });
   }
 
-
   const result = await Promise.all(
     cars.map(async (carData: any) => {
-
       const carWithUser = await Car.findById(carData._id)
         .populate({
           path: "userId",
@@ -319,10 +338,13 @@ const getRecentCarsFromDB = async (userId?: string) => {
       return {
         ...carWithUser,
         // convert distance to km
-        distance: carData.distance !== undefined ? (carData.distance / 1000).toFixed(1) : "0.0",
+        distance:
+          carData.distance !== undefined
+            ? (carData.distance / 1000).toFixed(1)
+            : "0.0",
         isFavourite: Boolean(favouriteMap[carData._id.toString()]),
       };
-    })
+    }),
   );
 
   return {
@@ -406,12 +428,10 @@ const updateCarVerificationStatusByIdToDB = async (
   return result;
 };
 
-
 interface GetOwnCarsParams {
   userId: string;
   verificationStatus?: CAR_VERIFICATION_STATUS;
 }
-
 
 const getOwnCarsFromDB = async ({
   userId,
@@ -429,15 +449,13 @@ const getOwnCarsFromDB = async ({
   //  get location
   const { lat, lng } = await getTargetLocation(undefined, undefined, userId);
 
-
   const carQuery: Record<string, any> = {
-    userId: new Types.ObjectId(userId)
+    userId: new Types.ObjectId(userId),
   };
 
   if (verificationStatus) {
     carQuery.verificationStatus = verificationStatus;
   }
-
 
   const cars = await Car.aggregate([
     {
@@ -448,17 +466,15 @@ const getOwnCarsFromDB = async ({
         query: carQuery,
       },
     },
-    { $sort: { createdAt: -1 } }
+    { $sort: { createdAt: -1 } },
   ]);
 
   if (!cars.length) {
     return [];
   }
 
-
   const carsWithMeta = await Promise.all(
     cars.map(async (carData: any) => {
-
       const car = await Car.findById(carData._id).populate({
         path: "userId",
         select: "firstName lastName fullName role profileImage email phone",
@@ -473,24 +489,27 @@ const getOwnCarsFromDB = async ({
 
       const reviewSummary = await ReviewServices.getReviewSummaryFromDB(
         car._id.toString(),
-        REVIEW_TYPE.CAR
+        REVIEW_TYPE.CAR,
       );
 
       return {
         ...car.toObject(),
-        // convert distance to km 
-        distance: carData.distance !== undefined ? (carData.distance / 1000).toFixed(1) : "0.0",
+        // convert distance to km
+        distance:
+          carData.distance !== undefined
+            ? (carData.distance / 1000).toFixed(1)
+            : "0.0",
         isFavourite: Boolean(isBookmarked),
         averageRating: reviewSummary.averageRating,
         totalReviews: reviewSummary.totalReviews,
         starCounts: reviewSummary.starCounts,
         reviews: reviewSummary.reviews,
       };
-    })
+    }),
   );
 
   // null filter
-  return carsWithMeta.filter(car => car !== null);
+  return carsWithMeta.filter((car) => car !== null);
 };
 
 const getCarByIdFromDB = async (id: string, userId: string) => {
@@ -514,7 +533,6 @@ const getCarByIdFromDB = async (id: string, userId: string) => {
     return {};
   }
 
-
   const car = await Car.findById(carData._id).populate({
     path: "userId",
     select: "firstName lastName fullName role profileImage email phone",
@@ -530,13 +548,19 @@ const getCarByIdFromDB = async (id: string, userId: string) => {
   const now = new Date();
   const isAvailable = await checkCarAvailabilityByDate(car, now);
   const availabilityCalendar = await getCarCalendar(id.toString());
-  const reviewSummary = await ReviewServices.getReviewSummaryFromDB(id, REVIEW_TYPE.CAR);
+  const reviewSummary = await ReviewServices.getReviewSummaryFromDB(
+    id,
+    REVIEW_TYPE.CAR,
+  );
   const trips = await getCarTripCount(id);
 
   return {
     ...car.toObject(),
     // convert distance to km
-    distance: carData.distance !== undefined ? (carData.distance / 1000).toFixed(1) : "0.0",
+    distance:
+      carData.distance !== undefined
+        ? (carData.distance / 1000).toFixed(1)
+        : "0.0",
     trips: trips || 0,
     isAvailable,
     availabilityCalendar,
@@ -547,7 +571,6 @@ const getCarByIdFromDB = async (id: string, userId: string) => {
     reviews: reviewSummary.reviews,
   };
 };
-
 
 const removeUndefined = <T extends Record<string, any>>(obj: T): Partial<T> =>
   Object.fromEntries(
@@ -562,9 +585,9 @@ enum ACTION {
 export type ArrayActionValue =
   | string
   | {
-    label: string;
-    value: string;
-  };
+      label: string;
+      value: string;
+    };
 
 export interface IArrayAction {
   field: "images" | "availableDays" | "facilities";
@@ -577,7 +600,6 @@ type FacilityPayload = {
   value: string;
   icon?: string;
 };
-
 
 const updateCarByIdToDB = async (
   userId: string,
@@ -609,7 +631,9 @@ const updateCarByIdToDB = async (
 
     // -------------------------- Build update query --------------------------
     if (field === "facilities") {
-      const isFacilityPayload = (val: ArrayActionValue): val is FacilityPayload => {
+      const isFacilityPayload = (
+        val: ArrayActionValue,
+      ): val is FacilityPayload => {
         return (
           typeof val === "object" &&
           val !== null &&
@@ -617,7 +641,6 @@ const updateCarByIdToDB = async (
           "value" in val
         );
       };
-
 
       if (action === ACTION.ADD) {
         if (!isFacilityPayload(value)) {
@@ -646,8 +669,7 @@ const updateCarByIdToDB = async (
           },
         };
       }
-    }
-    else {
+    } else {
       if (action === ACTION.ADD) {
         updateQuery = { $addToSet: { [field]: value } };
       }
@@ -689,7 +711,6 @@ const updateCarByIdToDB = async (
   return updated;
 };
 
-
 const deleteCarByIdFromDB = async (userId: string, id: string) => {
   // -------------------------- Check host --------------------------
   const user = await User.findOne({
@@ -720,7 +741,9 @@ const deleteCarByIdFromDB = async (userId: string, id: string) => {
 
   // Notify ADMIN & SUPER_ADMIN
 
-  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select(
+    "_id",
+  );
 
   if (admin) {
     await sendNotifications({
@@ -733,7 +756,6 @@ const deleteCarByIdFromDB = async (userId: string, id: string) => {
 
   return result;
 };
-
 
 const getAvailability = async (carId: string, dateString: string) => {
   // ---------- Normalize Date (UTC Day) ----------
@@ -907,7 +929,7 @@ const getBookingBlockedHours = (bookings: any[], date: Date) => {
  * =========================
  * HELPER: FULL DAY BLOCK
  * =========================
-*/
+ */
 
 const generateBlockedResponse = (date: Date, reason: string) => ({
   date: date.toISOString().split("T")[0],
@@ -963,11 +985,8 @@ const createCarBlockedDatesToDB = async (
   return result;
 };
 
-
-
 const getSuggestedCarsFromDB = async (userId: string, limit: number = 10) => {
   console.log("===== START getSuggestedCarsFromDB =====");
-
 
   const { lat, lng } = await getTargetLocation(undefined, undefined, userId);
   const location: [number, number] = [lng, lat];
@@ -1038,7 +1057,7 @@ const getSuggestedCarsFromDB = async (userId: string, limit: number = 10) => {
     populatedCars.map(async (car: any) => {
       const reviewSummary = await ReviewServices.getReviewSummaryFromDB(
         car._id,
-        REVIEW_TYPE.CAR
+        REVIEW_TYPE.CAR,
       );
 
       return {
@@ -1049,7 +1068,7 @@ const getSuggestedCarsFromDB = async (userId: string, limit: number = 10) => {
         starCounts: reviewSummary.starCounts,
         reviews: reviewSummary.reviews,
       };
-    })
+    }),
   );
 
   console.log("===== END getSuggestedCarsFromDB =====");
@@ -1082,7 +1101,6 @@ const isCarBookableForDay = async (car: any, date: Date): Promise<boolean> => {
     if (!car.availableDays.includes(dayName)) return false;
   }
 
-
   // Booking overlap
   const bookingExists = await Booking.exists({
     carId: car._id,
@@ -1093,8 +1111,6 @@ const isCarBookableForDay = async (car: any, date: Date): Promise<boolean> => {
 
   return !bookingExists;
 };
-
-
 
 const getCarsByDestinationFromDB = async (destinationId: string) => {
   // destination find
@@ -1111,10 +1127,8 @@ const getCarsByDestinationFromDB = async (destinationId: string) => {
     verificationStatus: CAR_VERIFICATION_STATUS.APPROVED,
   }).sort({ createdAt: -1 });
 
-  return result
+  return result;
 };
-
-
 
 export const CarServices = {
   createCarToDB,
@@ -1129,5 +1143,5 @@ export const CarServices = {
   updateCarVerificationStatusByIdToDB,
   getSuggestedCarsFromDB,
   getRecentCarsFromDB,
-  getCarsByDestinationFromDB
+  getCarsByDestinationFromDB,
 };

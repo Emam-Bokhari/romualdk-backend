@@ -116,7 +116,6 @@ const userSchema = new Schema<IUser, UserModal>(
       address: {
         type: String,
         default: "",
-
       },
     },
     // stripe ....
@@ -169,7 +168,7 @@ const userSchema = new Schema<IUser, UserModal>(
         return ret;
       },
     },
-  }
+  },
 );
 
 userSchema.virtual("fullName").get(function (this) {
@@ -196,7 +195,7 @@ userSchema.statics.isAccountCreated = async (id: string) => {
 //is match password
 userSchema.statics.isMatchPassword = async (
   password: string,
-  hashPassword: string
+  hashPassword: string,
 ): Promise<boolean> => {
   return await bcrypt.compare(password, hashPassword);
 };
@@ -204,13 +203,12 @@ userSchema.statics.isMatchPassword = async (
 //check user
 userSchema.pre("save", async function (next) {
   if (this.isNew) {
-
     if (this.phone) {
       const isExist = await User.findOne({ phone: this.phone });
       if (isExist) {
         throw new ApiError(
           StatusCodes.BAD_REQUEST,
-          "Phone number already exists!"
+          "Phone number already exists!",
         );
       }
     }
@@ -219,15 +217,14 @@ userSchema.pre("save", async function (next) {
     if (this.password) {
       this.password = await bcrypt.hash(
         this.password,
-        Number(config.bcrypt_salt_rounds)
+        Number(config.bcrypt_salt_rounds),
       );
     }
   } else {
-
     if (this.isModified("password") && this.password) {
       this.password = await bcrypt.hash(
         this.password,
-        Number(config.bcrypt_salt_rounds)
+        Number(config.bcrypt_salt_rounds),
       );
     }
   }

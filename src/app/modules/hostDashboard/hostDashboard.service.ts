@@ -11,7 +11,7 @@ const getHostDashboardData = async (hostId: string, year: number) => {
   const currentMonthStart = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth(),
-    1
+    1,
   );
 
   const yearStart = new Date(year, 0, 1);
@@ -30,21 +30,17 @@ const getHostDashboardData = async (hostId: string, year: number) => {
     upcomingPayouts,
   ] = await Promise.all([
     // 1. Profile (name + location)
-    User.findById(
-      objectHostId,
-      {
-        firstName: 1,
-        lastName: 1,
-        profileImage: 1,
-        location: {
-          "location.city": 1,
-          "location.country": 1,
-        },
-        city: 1,
-        country: 1,
-      }
-    ).lean()
-    ,
+    User.findById(objectHostId, {
+      firstName: 1,
+      lastName: 1,
+      profileImage: 1,
+      location: {
+        "location.city": 1,
+        "location.country": 1,
+      },
+      city: 1,
+      country: 1,
+    }).lean(),
 
     // 2. Total Earnings (all time succeeded hostReceiptAmount)
     Transaction.aggregate<{ total: number }>([
@@ -146,11 +142,11 @@ const getHostDashboardData = async (hostId: string, year: number) => {
   });
   console.log(profile);
 
-
   return {
     profile: {
       name: profile
-        ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() || "Unknown"
+        ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() ||
+          "Unknown"
         : "Unknown",
 
       location:
@@ -173,13 +169,12 @@ const getHostDashboardData = async (hostId: string, year: number) => {
     recentPayouts,
     upcomingPayouts,
   };
-
 };
 
 // Helper: Recent & Upcoming Payouts
 const getPayouts = async (
   hostId: Types.ObjectId,
-  payoutStatus: "succeeded" | "pending"
+  payoutStatus: "succeeded" | "pending",
 ) => {
   return await Transaction.aggregate([
     {

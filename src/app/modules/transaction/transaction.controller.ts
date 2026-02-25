@@ -2,12 +2,9 @@ import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { TransactionService } from "./transaction.service";
- 
 
 const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
-  const result = await TransactionService.getAllTransactions(
-    req.query
-  );
+  const result = await TransactionService.getAllTransactions(req.query);
 
   sendResponse(res, {
     statusCode: 200,
@@ -29,7 +26,10 @@ const getTransactionById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateTransaction = catchAsync(async (req: Request, res: Response) => {
-  const result = await TransactionService.updateTransaction(req.params.id, req.body);
+  const result = await TransactionService.updateTransaction(
+    req.params.id,
+    req.body,
+  );
   sendResponse(res, {
     statusCode: 200,
     success: true,

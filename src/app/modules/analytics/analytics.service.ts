@@ -18,7 +18,7 @@ const statCountsFromDB = async () => {
     }),
     Booking.countDocuments({
       status: "paid",
-      carStatus: "completed"
+      carStatus: "completed",
     }),
 
     Transaction.aggregate([
@@ -34,14 +34,13 @@ const statCountsFromDB = async () => {
         },
       },
     ]),
-
   ]);
 
   return {
     users,
     cars,
     bookings,
-    revenue: revenue[0].totalCommission || 0
+    revenue: revenue[0].totalCommission || 0,
   };
 };
 
@@ -111,7 +110,6 @@ const getGuestHostYearlyChart = async (year?: number) => {
     chart,
   };
 };
-
 
 export const AnalyticsServices = {
   statCountsFromDB,

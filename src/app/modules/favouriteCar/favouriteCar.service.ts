@@ -72,17 +72,15 @@ const getFavourite = async (userId: string) => {
   // ---------- STEP 2: Get trip count map ----------
   const tripCountMap = await getCarTripCountMap(carIds);
 
-
   // ---------- STEP 3: Attach trips + rating ----------
   const finalFavourites = await Promise.all(
     favourites.map(async (fav: any) => {
       const carId = fav.referenceId?._id?.toString();
 
-      const reviewSummary =
-        await ReviewServices.getReviewSummaryFromDB(
-          carId,
-          REVIEW_TYPE.CAR
-        );
+      const reviewSummary = await ReviewServices.getReviewSummaryFromDB(
+        carId,
+        REVIEW_TYPE.CAR,
+      );
 
       return {
         ...fav,
@@ -95,7 +93,7 @@ const getFavourite = async (userId: string) => {
           reviews: reviewSummary.reviews,
         },
       };
-    })
+    }),
   );
 
   return finalFavourites;

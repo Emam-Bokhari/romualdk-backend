@@ -46,8 +46,7 @@
 //         MobileNumbers: mobileNumbers,
 //       };
 
-
-//       const response = await axios.get(this.baseUrl, { 
+//       const response = await axios.get(this.baseUrl, {
 //         params,
 //         headers: {
 //             'Accept': 'application/json',
@@ -87,9 +86,9 @@ import ApiError from "../errors/ApiErrors";
 import { StatusCodes } from "http-status-codes";
 import config from "../config";
 
-
 class AfrikSmsService {
-  private baseUrl: string = "https://api.afriksms.com/api/web/web_v1/outbounds/send";
+  private baseUrl: string =
+    "https://api.afriksms.com/api/web/web_v1/outbounds/send";
 
   private formatPhoneNumber(phone: string, countryCode: string): string {
     let cleanCode = countryCode.replace(/\+/g, "").replace(/^00/, "");
@@ -104,7 +103,12 @@ class AfrikSmsService {
   }
 
   // Single SMS GET
-  async sendSMS(phoneNumber: string, countryCode: string, message: string, userId?: string) {
+  async sendSMS(
+    phoneNumber: string,
+    countryCode: string,
+    message: string,
+    userId?: string,
+  ) {
     try {
       const mobileNumbers = this.formatPhoneNumber(phoneNumber, countryCode);
       const params = {
@@ -117,11 +121,13 @@ class AfrikSmsService {
         MobileNumbers: mobileNumbers,
       };
 
-      const response = await axios.get(this.baseUrl, { params, headers: { Accept: 'application/json' } });
+      const response = await axios.get(this.baseUrl, {
+        params,
+        headers: { Accept: "application/json" },
+      });
 
       console.log("Sending SMS to:", mobileNumbers, "Message:", message);
       console.log("AfrikSMS response:", response.data);
-
 
       if (response.data.code === 100) {
         return {
@@ -138,10 +144,12 @@ class AfrikSmsService {
         throw new Error(response.data.message || "Failed to send SMS");
       }
     } catch (error: any) {
-      throw new ApiError(StatusCodes.EXPECTATION_FAILED, `SMS failed: ${error.message}`);
+      throw new ApiError(
+        StatusCodes.EXPECTATION_FAILED,
+        `SMS failed: ${error.message}`,
+      );
     }
   }
-
 }
 
 export const afrikSmsService = new AfrikSmsService();

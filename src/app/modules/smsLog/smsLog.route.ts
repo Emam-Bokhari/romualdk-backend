@@ -1,7 +1,6 @@
 import express from "express";
 import { smsCallback } from "./smsLog.controller";
 
-
 const router = express.Router();
 
 router.get("/afrik-sms/callback", smsCallback);

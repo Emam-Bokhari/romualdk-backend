@@ -29,7 +29,6 @@ const createUser = catchAsync(
 // register admin
 const createAdmin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-
     const { ...userData } = req.body;
     const result = await UserService.createAdminToDB(userData);
 
@@ -281,7 +280,6 @@ const getHostById = catchAsync(async (req, res) => {
     message: "Successfully retrieve host by ID",
     data: result,
   });
-
 });
 const getHostDetailsById = catchAsync(async (req, res) => {
   const { id } = req.params;

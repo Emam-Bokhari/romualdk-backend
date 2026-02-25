@@ -12,14 +12,14 @@ const router = Router();
 router.post(
   "/create",
   validateRequest(initiatePaymentSchema),
-  PaymentController.initiatePayment
+  PaymentController.initiatePayment,
 );
 router.get("/success", PaymentController.success);
 router.get("/cancel", PaymentController.cancel);
 router.post(
   "/:bookingId",
   auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-  PaymentController.payoutToHostController
+  PaymentController.payoutToHostController,
 );
 
 export const paymentRoutes = router;

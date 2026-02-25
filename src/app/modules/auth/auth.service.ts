@@ -61,7 +61,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
   const query: any = {};
   if (phone) query.phone = phone;
   if (email) query.email = email;
-  console.log(query, "hiiiiiiiiiiiiiiiiiiiiiiiiiii")
+  console.log(query, "hiiiiiiiiiiiiiiiiiiiiiiiiiii");
   const user: any = await User.findOne(query).select("+password");
 
   if (!user) {
@@ -94,7 +94,6 @@ const loginUserFromDB = async (payload: ILoginData) => {
     user: userObj,
   };
 };
-
 
 // ==================twilio forget password system==========================
 // const forgetPasswordToDB = async (payload: any) => {
@@ -214,9 +213,11 @@ const forgetPasswordToDB = async (payload: any) => {
     try {
       await afrikSmsService.sendSMS(phone, countryCode, smsMessage);
     } catch (error) {
-      throw new ApiError(StatusCodes.EXPECTATION_FAILED, "Failed to send reset code to phone.");
+      throw new ApiError(
+        StatusCodes.EXPECTATION_FAILED,
+        "Failed to send reset code to phone.",
+      );
     }
-
 
     const authentication = {
       oneTimeCode: otp,
@@ -268,7 +269,6 @@ const forgetPasswordToDB = async (payload: any) => {
     return { via: "email", email };
   }
 };
-
 
 //================== twilio verify phone OTP - ADD countryCode parameter===========================
 // const verifyPhoneToDB = async (payload: {
@@ -351,7 +351,6 @@ const verifyPhoneToDB = async (payload: {
 }) => {
   const { phone, code, countryCode } = payload;
 
-
   const isExistUser = await User.findOne({ phone, countryCode }).select(
     "+authentication",
   );
@@ -360,14 +359,14 @@ const verifyPhoneToDB = async (payload: {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
-
   const dbOtp = isExistUser.authentication?.oneTimeCode;
   const expiry = isExistUser.authentication?.expireAt;
 
   const isValid =
     dbOtp !== null &&
     dbOtp === Number(code) &&
-    expiry && new Date(expiry) > new Date();
+    expiry &&
+    new Date(expiry) > new Date();
 
   if (!isValid) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid or expired OTP");
@@ -375,7 +374,6 @@ const verifyPhoneToDB = async (payload: {
 
   let message;
   let data;
-
 
   if (!isExistUser.verified) {
     await User.findOneAndUpdate(
@@ -391,9 +389,7 @@ const verifyPhoneToDB = async (payload: {
     );
 
     message = "Your account is verified successfully";
-  }
-
-  else {
+  } else {
     await User.findOneAndUpdate(
       { _id: isExistUser._id },
       {
@@ -405,9 +401,7 @@ const verifyPhoneToDB = async (payload: {
       },
     );
 
-
     const createToken = cryptoToken();
-
 
     await ResetToken.create({
       user: isExistUser._id,
@@ -421,7 +415,6 @@ const verifyPhoneToDB = async (payload: {
 
   return { data, message };
 };
-
 
 // const resetPasswordToDB = async (
 //   token: string,
@@ -489,7 +482,7 @@ const resetPasswordToDB = async (
   payload: { newPassword: string; confirmPassword: string },
 ) => {
   const { newPassword, confirmPassword } = payload;
-  console.log(token, "token")
+  console.log(token, "token");
 
   //  Password matching check
   if (newPassword !== confirmPassword) {
@@ -510,7 +503,6 @@ const resetPasswordToDB = async (
   const isExistUser = await User.findById(isExistToken.user).select(
     "+authentication",
   );
-
 
   if (!isExistUser?.authentication?.isResetPassword) {
     throw new ApiError(
@@ -568,7 +560,10 @@ const changePasswordToDB = async (
   //current password match
   if (
     currentPassword &&
-    !(await User.isMatchPassword(currentPassword, isExistUser.password as string))
+    !(await User.isMatchPassword(
+      currentPassword,
+      isExistUser.password as string,
+    ))
   ) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Password is incorrect");
   }
@@ -667,7 +662,7 @@ const resendPhoneOTPToDB = async (phone: string, countryCode: string) => {
   // new OTP generate
   const otp = afrikSmsService.generateOTP();
 
-  // 
+  //
   const smsMessage = `Your verification code is ${otp}. Valid for 5 minutes.`;
 
   try {
@@ -675,7 +670,7 @@ const resendPhoneOTPToDB = async (phone: string, countryCode: string) => {
   } catch (error: any) {
     throw new ApiError(
       StatusCodes.EXPECTATION_FAILED,
-      `Failed to resend OTP: ${error.message}`
+      `Failed to resend OTP: ${error.message}`,
     );
   }
 
@@ -688,13 +683,13 @@ const resendPhoneOTPToDB = async (phone: string, countryCode: string) => {
   const result = await User.findOneAndUpdate(
     { phone, countryCode },
     { $set: { authentication } },
-    { new: true }
+    { new: true },
   );
 
   return {
     phone: result?.phone,
     countryCode: result?.countryCode,
-    message: "A new OTP has been sent to your phone."
+    message: "A new OTP has been sent to your phone.",
   };
 };
 

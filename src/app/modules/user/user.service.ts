@@ -16,7 +16,6 @@ import { sendNotifications } from "../../../helpers/notificationsHelper";
 import { NOTIFICATION_TYPE } from "../notification/notification.constant";
 
 const createAdminToDB = async (payload: any): Promise<IUser> => {
-
   if (payload.phone) {
     delete payload.phone;
   }
@@ -45,7 +44,9 @@ const createAdminToDB = async (payload: any): Promise<IUser> => {
 const getAdminFromDB = async (query: any) => {
   const baseQuery = User.find({
     role: { $in: [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] },
-  }).select("firstName lastName email role profileImage createdAt updatedAt status");
+  }).select(
+    "firstName lastName email role profileImage createdAt updatedAt status",
+  );
 
   const queryBuilder = new QueryBuilder<IUser>(baseQuery, query)
     .search(["firstName", "lastName", "fullName", "email"])
@@ -73,15 +74,17 @@ const deleteAdminFromDB = async (id: any) => {
   return isExistAdmin;
 };
 
-
 const createUserToDB = async (payload: Partial<IUser>) => {
   const requiredFields = ["countryCode", "phone"];
   const missingFields = requiredFields.filter(
-    (field) => !payload[field as keyof IUser]
+    (field) => !payload[field as keyof IUser],
   );
 
   if (missingFields.length > 0) {
-    throw new ApiError(400, `Missing required fields: ${missingFields.join(", ")}`);
+    throw new ApiError(
+      400,
+      `Missing required fields: ${missingFields.join(", ")}`,
+    );
   }
 
   const otp = afrikSmsService.generateOTP();
@@ -90,7 +93,7 @@ const createUserToDB = async (payload: Partial<IUser>) => {
   payload.authentication = {
     oneTimeCode: otp,
     expireAt,
-    isResetPassword: false
+    isResetPassword: false,
   };
 
   const createUser = await User.create(payload);
@@ -106,16 +109,14 @@ const createUserToDB = async (payload: Partial<IUser>) => {
       createUser.phone,
       createUser.countryCode,
       smsMessage,
-      createUser._id.toString()
+      createUser._id.toString(),
     );
 
     // optionally save in DB if you want separate log collection
     await SMSLog.create(smsLog);
-
   } catch (error) {
     console.error("SMS sending failed:", error);
   }
-
 
   // ---------------- NOTIFICATIONS ----------------
 
@@ -128,7 +129,9 @@ const createUserToDB = async (payload: Partial<IUser>) => {
   });
 
   // Notify ADMIN(s)
-  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select(
+    "_id",
+  );
 
   if (admin) {
     await sendNotifications({
@@ -144,7 +147,7 @@ const createUserToDB = async (payload: Partial<IUser>) => {
   const createToken = jwtHelper.createToken(
     { id: createUser._id, phone: createUser.phone, role: createUser.role },
     config.jwt.jwt_secret as Secret,
-    config.jwt.jwt_expire_in as string
+    config.jwt.jwt_expire_in as string,
   );
 
   return {
@@ -200,7 +203,11 @@ const switchProfileToDB = async (
   //   throw new ApiError(400, "User cannot switch to host before admin approval");
   // }
 
-  const updatedUser = await User.findByIdAndUpdate(userId, { role }, { new: true });
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { role },
+    { new: true },
+  );
 
   if (!updatedUser) throw new ApiError(400, "Failed to update role");
 
@@ -293,12 +300,10 @@ const createHostRequestToDB = async (
     throw new ApiError(400, "User is already a host");
   }
 
-  const hasNID =
-    payload.nidFrontPic && payload.nidBackPic;
+  const hasNID = payload.nidFrontPic && payload.nidBackPic;
 
   const hasDrivingLicense =
-    payload.drivingLicenseFrontPic &&
-    payload.drivingLicenseBackPic;
+    payload.drivingLicenseFrontPic && payload.drivingLicenseBackPic;
 
   //  At least one must exist
   if (!hasNID && !hasDrivingLicense) {
@@ -313,10 +318,7 @@ const createHostRequestToDB = async (
     (payload.nidFrontPic && !payload.nidBackPic) ||
     (!payload.nidFrontPic && payload.nidBackPic)
   ) {
-    throw new ApiError(
-      400,
-      "Both NID front and back pictures are required",
-    );
+    throw new ApiError(400, "Both NID front and back pictures are required");
   }
 
   if (
@@ -352,7 +354,9 @@ const createHostRequestToDB = async (
     referenceId: user._id.toString(),
   });
 
-  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select(
+    "_id",
+  );
 
   if (admin) {
     await sendNotifications({
@@ -365,7 +369,6 @@ const createHostRequestToDB = async (
 
   return user;
 };
-
 
 const getAllHostRequestsFromDB = async (query: any) => {
   const baseQuery = User.find({
@@ -565,7 +568,6 @@ const deleteUserByIdFromD = async (id: string) => {
   return result;
 };
 
-
 const deleteProfileFromDB = async (id: string) => {
   const isExistUser = await User.isExistUserById(id);
   if (!isExistUser) {
@@ -579,7 +581,9 @@ const deleteProfileFromDB = async (id: string) => {
   }
 
   // ---------------- Notify ADMIN & SUPER_ADMIN ----------------
-  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select("_id");
+  const admin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN }).select(
+    "_id",
+  );
 
   if (admin) {
     await sendNotifications({
@@ -592,7 +596,6 @@ const deleteProfileFromDB = async (id: string) => {
 
   return deletedUser;
 };
-
 
 const getAllHostsFromDB = async (query: any) => {
   const page = Number(query.page) || 1;
@@ -624,9 +627,7 @@ const getAllHostsFromDB = async (query: any) => {
 
   /* -------------------- FILTER -------------------- */
   Object.keys(filters).forEach((key) => {
-    if (
-      !["page", "limit", "search", "sortBy", "sortOrder"].includes(key)
-    ) {
+    if (!["page", "limit", "search", "sortBy", "sortOrder"].includes(key)) {
       matchStage[key] = filters[key];
     }
   });
@@ -718,7 +719,6 @@ const getAllHostsFromDB = async (query: any) => {
   };
 };
 
-
 const getHostByIdFromDB = async (id: string) => {
   if (!Types.ObjectId.isValid(id)) {
     throw new ApiError(400, "Invalid host ID");
@@ -792,13 +792,11 @@ const getHostByIdFromDB = async (id: string) => {
   return result[0];
 };
 
-
 // Updated function signature to accept location context
 const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
   if (!Types.ObjectId.isValid(id)) {
     throw new ApiError(400, "Invalid host ID");
   }
-
 
   // 1. Get the visitor's location (same logic as getAllCars)
   const { lat, lng } = await getTargetLocation(undefined, undefined, visitorId);
@@ -812,9 +810,9 @@ const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
         spherical: true,
         query: {
           _id: new Types.ObjectId(id),
-          hostStatus: HOST_STATUS.APPROVED
-        }
-      }
+          hostStatus: HOST_STATUS.APPROVED,
+        },
+      },
     },
     /* Join Cars & Reviews */
     {
@@ -837,8 +835,8 @@ const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
               from: "users",
               localField: "fromUserId",
               foreignField: "_id",
-              as: "fromUser"
-            }
+              as: "fromUser",
+            },
           },
           { $unwind: "$fromUser" },
           {
@@ -856,9 +854,9 @@ const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
                 phone: 1,
                 profileImage: 1,
                 location: 1,
-              }
-            }
-          }
+              },
+            },
+          },
         ],
         as: "reviews",
       },
@@ -870,8 +868,8 @@ const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
         distance: {
           $concat: [
             { $toString: { $round: [{ $divide: ["$distance", 1000] }, 1] } },
-            // " km" 
-          ]
+            // " km"
+          ],
         },
         cars: {
           $filter: {
@@ -890,22 +888,62 @@ const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
           $cond: [
             { $gt: [{ $size: "$reviews" }, 0] },
             { $round: [{ $avg: "$reviews.ratingValue" }, 1] },
-            0
-          ]
+            0,
+          ],
         },
         starCounts: {
-          "1": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 1] } } } },
-          "2": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 2] } } } },
-          "3": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 3] } } } },
-          "4": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 4] } } } },
-          "5": { $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.ratingValue", 5] } } } },
-        }
+          "1": {
+            $size: {
+              $filter: {
+                input: "$reviews",
+                as: "r",
+                cond: { $eq: ["$$r.ratingValue", 1] },
+              },
+            },
+          },
+          "2": {
+            $size: {
+              $filter: {
+                input: "$reviews",
+                as: "r",
+                cond: { $eq: ["$$r.ratingValue", 2] },
+              },
+            },
+          },
+          "3": {
+            $size: {
+              $filter: {
+                input: "$reviews",
+                as: "r",
+                cond: { $eq: ["$$r.ratingValue", 3] },
+              },
+            },
+          },
+          "4": {
+            $size: {
+              $filter: {
+                input: "$reviews",
+                as: "r",
+                cond: { $eq: ["$$r.ratingValue", 4] },
+              },
+            },
+          },
+          "5": {
+            $size: {
+              $filter: {
+                input: "$reviews",
+                as: "r",
+                cond: { $eq: ["$$r.ratingValue", 5] },
+              },
+            },
+          },
+        },
       },
     },
     {
       $addFields: {
-        totalCars: { $size: "$cars" }
-      }
+        totalCars: { $size: "$cars" },
+      },
     },
     {
       $project: {

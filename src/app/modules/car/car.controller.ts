@@ -9,7 +9,7 @@ const createCar = catchAsync(async (req, res) => {
 
   const carData = req.body;
 
-  console.log(carData,"CAR DATA");
+  console.log(carData, "CAR DATA");
 
   const result = await CarServices.createCarToDB(userId, carData);
 
@@ -78,22 +78,19 @@ const getAllCars = catchAsync(async (req, res) => {
   });
 });
 
-const getRecentCars = catchAsync(
-  async (req, res) => {
-    const userId = req.user?.id;
+const getRecentCars = catchAsync(async (req, res) => {
+  const userId = req.user?.id;
 
-    const result = await CarServices.getRecentCarsFromDB(userId);
+  const result = await CarServices.getRecentCarsFromDB(userId);
 
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "Recent cars retrieved successfully",
-      data: result.data,
-      meta: result.meta,
-    });
-  }
-);
-
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Recent cars retrieved successfully",
+    data: result.data,
+    meta: result.meta,
+  });
+});
 
 const getOwnCars = catchAsync(async (req, res) => {
   const { verificationStatus } = req.query;
@@ -101,7 +98,7 @@ const getOwnCars = catchAsync(async (req, res) => {
   const result = await CarServices.getOwnCarsFromDB({
     userId: req.user.id,
     verificationStatus: normalizeCarVerificationStatus(
-      verificationStatus as string
+      verificationStatus as string,
     ),
   });
 
@@ -260,31 +257,27 @@ const getSuggestedCars = catchAsync(async (req, res) => {
   });
 });
 
-const getCarsByDestination = catchAsync(
-  async (req, res) => {
-    const { destinationId } = req.params;
+const getCarsByDestination = catchAsync(async (req, res) => {
+  const { destinationId } = req.params;
 
-    if (!destinationId) {
-      return sendResponse(res, {
-        statusCode: 400,
-        success: false,
-        message: "Destination ID is required",
-      });
-    }
-
-    // fetch destination & cars
-    const result = await CarServices.getCarsByDestinationFromDB(destinationId);
-
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "Cars fetched successfully by destination",
-      data: result,
+  if (!destinationId) {
+    return sendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: "Destination ID is required",
     });
   }
-);
 
+  // fetch destination & cars
+  const result = await CarServices.getCarsByDestinationFromDB(destinationId);
 
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Cars fetched successfully by destination",
+    data: result,
+  });
+});
 
 export const CarControllers = {
   createCar,

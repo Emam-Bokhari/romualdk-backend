@@ -87,7 +87,7 @@ const apiRoutes = [
   },
   {
     path: "/transactions",
-    route: transactionRoutes
+    route: transactionRoutes,
   },
   {
     path: "/host-dashboard",
@@ -103,7 +103,7 @@ const apiRoutes = [
   },
   {
     path: "/notifications",
-    route: NotificationRoutes
+    route: NotificationRoutes,
   },
   {
     path: "/settings",
