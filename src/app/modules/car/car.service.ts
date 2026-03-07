@@ -170,6 +170,18 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
   pipeline.push({ $skip: skip }, { $limit: Number(limit) });
 
   // fetch data
+  const carCount = await Car.countDocuments();
+  if (carCount === 0) {
+    return {
+      data: [],
+      meta: {
+        page: Number(page),
+        limit: Number(limit),
+        total: 0,
+      },
+    };
+  }
+
   const cars = await Car.aggregate(pipeline);
 
   // ---------- Availability & Reviews ----------
@@ -296,6 +308,16 @@ const getRecentCarsFromDB = async (userId?: string) => {
 
   //  get location
   const { lat, lng } = await getTargetLocation(undefined, undefined, userId);
+
+  const carCount = await Car.countDocuments();
+  if (carCount === 0) {
+    return {
+      data: [],
+      meta: {
+        total: 0,
+      },
+    };
+  }
 
   const cars = await Car.aggregate([
     {
@@ -457,6 +479,11 @@ const getOwnCarsFromDB = async ({
     carQuery.verificationStatus = verificationStatus;
   }
 
+  const carCount = await Car.countDocuments();
+  if (carCount === 0) {
+    return [];
+  }
+
   const cars = await Car.aggregate([
     {
       $geoNear: {
@@ -513,6 +540,12 @@ const getOwnCarsFromDB = async ({
 };
 
 const getCarByIdFromDB = async (id: string, userId: string) => {
+  // check if car exists first to avoid geoNear error on empty collection
+  const isExist = await Car.findById(id);
+  if (!isExist) {
+    return {};
+  }
+
   // get location
   const { lat, lng } = await getTargetLocation(undefined, undefined, userId);
 
@@ -994,6 +1027,11 @@ const getSuggestedCarsFromDB = async (userId: string, limit: number = 10) => {
   console.log("Using location:", location);
 
   const maxDistance = 500000; // 500 km default for testing purpose
+
+  const carCount = await Car.countDocuments();
+  if (carCount === 0) {
+    return [];
+  }
 
   // ---------- STEP 1: Geo query ----------
   const rawCars = await Car.aggregate([

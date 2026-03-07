@@ -6,8 +6,46 @@ import { User } from "../user/user.model";
 import { Booking } from "../booking/booking.model";
 import Transaction from "../payment/transaction.model";
 
+// const statCountsFromDB = async () => {
+//   const [users, cars, bookings, revenue] = await Promise.all([
+//     User.countDocuments({
+//       verified: true,
+//       status: STATUS.ACTIVE,
+//       role: { $in: [USER_ROLES.HOST, USER_ROLES.USER] },
+//     }),
+//     Car.countDocuments({
+//       verificationStatus: CAR_VERIFICATION_STATUS.APPROVED,
+//     }),
+//     Booking.countDocuments({
+//       status: "paid",
+//       carStatus: "completed",
+//     }),
+
+//     Transaction.aggregate([
+//       {
+//         $match: {
+//           status: "succeeded", // optional but recommended
+//         },
+//       },
+//       {
+//         $group: {
+//           _id: null,
+//           totalCommission: { $sum: "$commissionAmount" },
+//         },
+//       },
+//     ]),
+//   ]);
+
+//   return {
+//     users,
+//     cars,
+//     bookings,
+//     revenue: revenue[0].totalCommission || 0,
+//   };
+// };
+
 const statCountsFromDB = async () => {
-  const [users, cars, bookings, revenue] = await Promise.all([
+  const [users, cars, bookings, revenueAgg] = await Promise.all([
     User.countDocuments({
       verified: true,
       status: STATUS.ACTIVE,
@@ -20,11 +58,10 @@ const statCountsFromDB = async () => {
       status: "paid",
       carStatus: "completed",
     }),
-
     Transaction.aggregate([
       {
         $match: {
-          status: "succeeded", // optional but recommended
+          status: "succeeded",
         },
       },
       {
@@ -36,11 +73,13 @@ const statCountsFromDB = async () => {
     ]),
   ]);
 
+  const revenue = revenueAgg[0]?.totalCommission ?? 0;
+
   return {
     users,
     cars,
     bookings,
-    revenue: revenue[0].totalCommission || 0,
+    revenue,
   };
 };
 

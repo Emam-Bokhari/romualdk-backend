@@ -801,6 +801,11 @@ const getHostDetailsByIdFromDB = async (id: string, visitorId: string) => {
   // 1. Get the visitor's location (same logic as getAllCars)
   const { lat, lng } = await getTargetLocation(undefined, undefined, visitorId);
 
+  const userCount = await User.countDocuments();
+  if (userCount === 0) {
+    throw new ApiError(404, "No host is found in the database by this ID");
+  }
+
   const pipeline: PipelineStage[] = [
     // 2. $geoNear MUST be first. It calculates distance and filters by ID simultaneously.
     {
