@@ -170,18 +170,6 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
   pipeline.push({ $skip: skip }, { $limit: Number(limit) });
 
   // fetch data
-  const carCount = await Car.countDocuments();
-  if (carCount === 0) {
-    return {
-      data: [],
-      meta: {
-        page: Number(page),
-        limit: Number(limit),
-        total: 0,
-      },
-    };
-  }
-
   const cars = await Car.aggregate(pipeline);
 
   // ---------- Availability & Reviews ----------
@@ -308,16 +296,6 @@ const getRecentCarsFromDB = async (userId?: string) => {
 
   //  get location
   const { lat, lng } = await getTargetLocation(undefined, undefined, userId);
-
-  const carCount = await Car.countDocuments();
-  if (carCount === 0) {
-    return {
-      data: [],
-      meta: {
-        total: 0,
-      },
-    };
-  }
 
   const cars = await Car.aggregate([
     {
@@ -1027,11 +1005,6 @@ const getSuggestedCarsFromDB = async (userId: string, limit: number = 10) => {
   console.log("Using location:", location);
 
   const maxDistance = 500000; // 500 km default for testing purpose
-
-  const carCount = await Car.countDocuments();
-  if (carCount === 0) {
-    return [];
-  }
 
   // ---------- STEP 1: Geo query ----------
   const rawCars = await Car.aggregate([
