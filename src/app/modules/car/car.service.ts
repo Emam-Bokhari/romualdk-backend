@@ -146,15 +146,19 @@ const getAllCarsFromDB = async (query: any, userId: string) => {
   // ---------- create pipeline ----------
   let pipeline: any[] = [];
 
-  //
+  const geoNearStage: any = {
+    near: { type: "Point", coordinates: [lng, lat] },
+    distanceField: "distance",
+    spherical: true,
+    query: filter,
+  };
+
+  if (maxDistance) {
+    geoNearStage.maxDistance = Number(maxDistance) * 1000;
+  }
+
   pipeline.push({
-    $geoNear: {
-      near: { type: "Point", coordinates: [lng, lat] },
-      distanceField: "distance",
-      maxDistance: maxDistance ? Number(maxDistance) * 1000 : 500000, // 500km
-      spherical: true,
-      query: filter,
-    },
+    $geoNear: geoNearStage,
   });
 
   // sorting
@@ -1004,15 +1008,12 @@ const getSuggestedCarsFromDB = async (userId: string, limit: number = 10) => {
 
   console.log("Using location:", location);
 
-  const maxDistance = 500000; // 500 km default for testing purpose
-
   // ---------- STEP 1: Geo query ----------
   const rawCars = await Car.aggregate([
     {
       $geoNear: {
         near: { type: "Point", coordinates: location },
         distanceField: "distance", // original in meters
-        maxDistance,
         spherical: true,
         query: {
           isActive: true,

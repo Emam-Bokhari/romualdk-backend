@@ -127,10 +127,12 @@ export const getTargetLocation = async (
   queryLng?: string | number,
   userId?: string,
 ) => {
-  let lat = queryLat ? Number(queryLat) : null;
-  let lng = queryLng ? Number(queryLng) : null;
+  let lat =
+    queryLat !== undefined && queryLat !== "" ? Number(queryLat) : null;
+  let lng =
+    queryLng !== undefined && queryLng !== "" ? Number(queryLng) : null;
 
-  if ((!lat || !lng) && userId) {
+  if ((lat === null || lng === null) && userId) {
     const user = await User.findById(userId).select("location");
     if (user?.location?.coordinates) {
       lng = user.location.coordinates[0];
@@ -139,9 +141,9 @@ export const getTargetLocation = async (
   }
 
   // default dhaka
-  if (!lat || !lng) {
+  if (lat === null || lng === null) {
     lng = 90.4125;
-    lat = 21.8103;
+    lat = 23.8103; // Corrected Dhaka latitude (roughly 23.8)
   }
 
   return { lat, lng };
