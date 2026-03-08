@@ -127,10 +127,8 @@ export const getTargetLocation = async (
   queryLng?: string | number,
   userId?: string,
 ) => {
-  let lat =
-    queryLat !== undefined && queryLat !== "" ? Number(queryLat) : null;
-  let lng =
-    queryLng !== undefined && queryLng !== "" ? Number(queryLng) : null;
+  let lat = queryLat !== undefined && queryLat !== "" ? Number(queryLat) : null;
+  let lng = queryLng !== undefined && queryLng !== "" ? Number(queryLng) : null;
 
   if ((lat === null || lng === null) && userId) {
     const user = await User.findById(userId).select("location");

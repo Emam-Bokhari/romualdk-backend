@@ -254,7 +254,7 @@ const authenticationSchema = new Schema(
       default: null,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const userSchema = new Schema<IUser, UserModal>(
@@ -425,9 +425,8 @@ const userSchema = new Schema<IUser, UserModal>(
         return ret;
       },
     },
-  }
+  },
 );
-
 
 // =========================
 // Virtual
@@ -435,7 +434,6 @@ const userSchema = new Schema<IUser, UserModal>(
 userSchema.virtual("fullName").get(function () {
   return `${this.firstName ?? ""} ${this.lastName ?? ""}`.trim();
 });
-
 
 // =========================
 // Static Methods
@@ -450,11 +448,10 @@ userSchema.statics.isExistUserByEmail = async function (email: string) {
 
 userSchema.statics.isMatchPassword = async function (
   password: string,
-  hashPassword: string
+  hashPassword: string,
 ): Promise<boolean> {
   return bcrypt.compare(password, hashPassword);
 };
-
 
 // =========================
 // Pre Save Hook
@@ -463,11 +460,10 @@ userSchema.pre("save", async function (next) {
   if (this.isModified("password") && this.password) {
     this.password = await bcrypt.hash(
       this.password,
-      Number(config.bcrypt_salt_rounds)
+      Number(config.bcrypt_salt_rounds),
     );
   }
   next();
 });
-
 
 export const User = model<IUser, UserModal>("User", userSchema);
